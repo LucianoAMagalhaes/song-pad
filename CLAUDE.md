@@ -23,13 +23,14 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Fase:** Bootstrap inicial em curso
+- **Fase:** Camada de dados pronta — a entrar nas funcionalidades
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
 - **PWA configurada:** Sim — Serwist (`@serwist/next` 9.5.x) + manifest + ícones placeholder
-- **Última branch trabalhada:** `chore/pwa-config`
-- **Último PR merged:** #2 (`chore/tooling`)
+- **Camada de dados:** Sim — Dexie (`songpad` DB v1) com tabelas `songs` e `setlists`; repositórios em `src/repositories/`
+- **Última branch trabalhada:** `feat/data-models`
+- **Último PR merged:** #3 (`chore/pwa-config`)
 
 > ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código.
 
@@ -52,9 +53,9 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - [x] Configurar Prettier + Husky + lint-staged
 - [x] Configurar Vitest
 - [x] Configurar PWA (manifest + Service Worker via Serwist) — usar `--webpack`
-- [ ] Implementar modelos de dados (`song.ts`, `setlist.ts`)
-- [ ] Implementar `db.ts` (instância Dexie com tabelas)
-- [ ] Implementar repositórios (`songRepository.ts`, `setlistRepository.ts`)
+- [x] Implementar modelos de dados (`song.ts`, `setlist.ts`)
+- [x] Implementar `db.ts` (instância Dexie com tabelas)
+- [x] Implementar repositórios (`songRepository.ts`, `setlistRepository.ts`)
 - [ ] Implementar `chordProParser.ts` com testes
 - [ ] Implementar `chordTransposer.ts` com testes
 - [ ] Ecrã: lista de músicas
