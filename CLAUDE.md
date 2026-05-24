@@ -23,18 +23,19 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Fase:** Visualizador de músicas com transposição funcional
+- **Fase:** Setlists com CRUD completo e reordenação drag-and-drop
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
 - **PWA configurada:** Sim — Serwist (`@serwist/next` 9.5.x) + manifest + ícones placeholder
-- **Camada de dados:** Sim — Dexie (`songpad` DB v1) com tabelas `songs` e `setlists`; repositórios em `src/repositories/`
+- **Camada de dados:** Sim — Dexie (`songpad` DB v1) com tabelas `songs` e `setlists`; repositórios em `src/repositories/` (ambos com `search`)
 - **Lógica de acordes:** Sim — `chordProParser` (parse/serialize) + `chordTransposer` (transposeChord/transposeContent) em `src/lib/`
 - **UI base:** Sim — tema dark Spotify-inspired, primitivos `Button`/`Input`/`Textarea`/`EmptyState` em `src/components/ui/`, `SongCard` + `SongList`, ecrã `/songs` com pesquisa e estado vazio
 - **Editor de músicas:** Sim — `SongForm` partilhado entre `/songs/new` e `/songs/[id]/edit`, validação de título obrigatório, redirecciona para `/songs` após guardar
 - **Visualizador de músicas:** Sim — `/songs/[id]` com `ChordRenderer` (acordes acima da sílaba), `Transposer` (−/+/↻ com `C → D`), inferência sharps/flats baseada no tom alvo, e acções Editar/Eliminar/Voltar
-- **Última branch trabalhada:** `feat/song-viewer`
-- **Último PR merged:** #7 (`feat/song-editor`)
+- **Setlists:** Sim — `SetlistForm` partilhado entre `/setlists/new` e `/setlists/[id]/edit`, com pesquisa de músicas, drag-and-drop (`@dnd-kit`) para reordenar, validação de nome obrigatório e eliminação a partir do form de edição. `SetlistCard` + `SetlistList` para a listagem em `/setlists`. Navegação Songs ↔ Setlists no header de cada página.
+- **Última branch trabalhada:** `feat/setlists`
+- **Último PR merged:** #8 (`feat/song-viewer`)
 
 > ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código.
 
@@ -65,7 +66,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - [x] Ecrã: lista de músicas
 - [x] Ecrã: criar/editar música
 - [x] Ecrã: visualizador de música com transposição
-- [ ] Ecrã: setlists
+- [x] Ecrã: setlists
 - [ ] Ecrã: player de setlist
 - [ ] Ecrã: definições (exportar/importar backup)
 
