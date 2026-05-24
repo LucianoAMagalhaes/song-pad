@@ -26,12 +26,14 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Fase:** Bootstrap inicial em curso
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
-- **Última branch trabalhada:** `chore/bootstrap-next`
-- **Último PR merged:** —
+- **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
+- **Última branch trabalhada:** `chore/tooling`
+- **Último PR merged:** #1 (`chore/bootstrap-next`)
 
 > ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código. Validar compatibilidade do `next-pwa` com Next 16 quando chegar ao PR do PWA — pode ser necessário usar `@ducanh2912/next-pwa` ou alternativa equivalente.
 
 ### O que já está decidido
+
 - Nome: SongPad / repo: song-pad
 - Stack: Next.js 16 + React 19 + TypeScript (strict) + Tailwind v4 + Dexie.js + PWA
 - Design: Spotify-inspired, dark + light mode
@@ -44,8 +46,8 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 - [x] Criar repositório `song-pad` no GitHub
 - [x] Iniciar projecto com `create-next-app` e configurar TypeScript strict
-- [ ] Configurar Prettier + Husky + lint-staged
-- [ ] Configurar Vitest
+- [x] Configurar Prettier + Husky + lint-staged
+- [x] Configurar Vitest
 - [ ] Configurar next-pwa (manifest + Service Worker) — validar compatibilidade com Next 16
 - [ ] Implementar modelos de dados (`song.ts`, `setlist.ts`)
 - [ ] Implementar `db.ts` (instância Dexie com tabelas)
@@ -123,13 +125,14 @@ song-pad/
 ## Modelos de Dados
 
 ### Song
+
 ```typescript
 interface Song {
   id: string;
   title: string;
   artist: string;
-  content: string;    // Letra + acordes em formato ChordPro
-  key: string;        // Tom original (ex: "G", "Am")
+  content: string; // Letra + acordes em formato ChordPro
+  key: string; // Tom original (ex: "G", "Am")
   bpm: number;
   createdAt: Date;
   updatedAt: Date;
@@ -137,11 +140,12 @@ interface Song {
 ```
 
 ### Setlist
+
 ```typescript
 interface Setlist {
   id: string;
   name: string;
-  songIds: string[];  // IDs ordenados
+  songIds: string[]; // IDs ordenados
   createdAt: Date;
 }
 ```
@@ -202,12 +206,12 @@ O campo `version` permite gerir migrações futuras do formato. Em caso de confl
 
 ## Regras de Língua (Estritas)
 
-| O quê | Língua |
-|---|---|
-| Código (variáveis, funções, classes, tipos) | Inglês |
-| Ficheiros e pastas | Inglês |
-| Comentários e docstrings | Inglês |
-| Commits e nomes de branches Git | Inglês |
+| O quê                                           | Língua    |
+| ----------------------------------------------- | --------- |
+| Código (variáveis, funções, classes, tipos)     | Inglês    |
+| Ficheiros e pastas                              | Inglês    |
+| Comentários e docstrings                        | Inglês    |
+| Commits e nomes de branches Git                 | Inglês    |
 | UI/UX (labels, botões, mensagens, placeholders) | Português |
 
 ## Fluxo Git
