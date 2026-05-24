@@ -23,15 +23,17 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Fase:** Pré-desenvolvimento — planeamento concluído
-- **Repositório criado:** Não
-- **Projecto Next.js iniciado:** Não
-- **Última branch trabalhada:** —
+- **Fase:** Bootstrap inicial em curso
+- **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
+- **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
+- **Última branch trabalhada:** `chore/bootstrap-next`
 - **Último PR merged:** —
+
+> ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código. Validar compatibilidade do `next-pwa` com Next 16 quando chegar ao PR do PWA — pode ser necessário usar `@ducanh2912/next-pwa` ou alternativa equivalente.
 
 ### O que já está decidido
 - Nome: SongPad / repo: song-pad
-- Stack: Next.js 14 + TypeScript + Tailwind + Dexie.js + next-pwa
+- Stack: Next.js 16 + React 19 + TypeScript (strict) + Tailwind v4 + Dexie.js + PWA
 - Design: Spotify-inspired, dark + light mode
 - Armazenamento: IndexedDB local no MVP, Firebase na Fase 3
 - Git: Conventional Commits, branches por funcionalidade, PR para main
@@ -40,11 +42,11 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > O Claude Code deve seguir esta ordem. Marcar como concluído à medida que avança.
 
-- [ ] Criar repositório `song-pad` no GitHub
-- [ ] Iniciar projecto com `create-next-app` e configurar TypeScript strict
+- [x] Criar repositório `song-pad` no GitHub
+- [x] Iniciar projecto com `create-next-app` e configurar TypeScript strict
 - [ ] Configurar Prettier + Husky + lint-staged
 - [ ] Configurar Vitest
-- [ ] Configurar next-pwa (manifest + Service Worker)
+- [ ] Configurar next-pwa (manifest + Service Worker) — validar compatibilidade com Next 16
 - [ ] Implementar modelos de dados (`song.ts`, `setlist.ts`)
 - [ ] Implementar `db.ts` (instância Dexie com tabelas)
 - [ ] Implementar repositórios (`songRepository.ts`, `setlistRepository.ts`)
