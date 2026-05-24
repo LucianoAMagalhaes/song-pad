@@ -39,10 +39,20 @@ async function remove(id: string): Promise<void> {
   await db.setlists.delete(id);
 }
 
+async function search(query: string): Promise<Setlist[]> {
+  const needle = query.trim().toLowerCase();
+  if (!needle) {
+    return list();
+  }
+  const all = await list();
+  return all.filter((setlist) => setlist.name.toLowerCase().includes(needle));
+}
+
 export const setlistRepository = {
   create,
   getById,
   list,
   update,
   remove,
+  search,
 };
