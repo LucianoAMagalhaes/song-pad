@@ -39,6 +39,15 @@ async function remove(id: string): Promise<void> {
   await db.setlists.delete(id);
 }
 
+/**
+ * Insert or replace a setlist by id, preserving the caller-provided
+ * `createdAt`. Used by backup import where the on-disk identity must
+ * survive the merge.
+ */
+async function upsert(setlist: Setlist): Promise<void> {
+  await db.setlists.put(setlist);
+}
+
 async function search(query: string): Promise<Setlist[]> {
   const needle = query.trim().toLowerCase();
   if (!needle) {
@@ -55,4 +64,5 @@ export const setlistRepository = {
   update,
   remove,
   search,
+  upsert,
 };

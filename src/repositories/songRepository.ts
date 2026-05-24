@@ -42,6 +42,14 @@ async function remove(id: string): Promise<void> {
   await db.songs.delete(id);
 }
 
+/**
+ * Insert or replace a song by id, preserving the caller-provided timestamps.
+ * Used by backup import where the on-disk identity must survive the merge.
+ */
+async function upsert(song: Song): Promise<void> {
+  await db.songs.put(song);
+}
+
 async function search(query: string): Promise<Song[]> {
   const needle = query.trim().toLowerCase();
   if (!needle) {
@@ -61,4 +69,5 @@ export const songRepository = {
   update,
   remove,
   search,
+  upsert,
 };

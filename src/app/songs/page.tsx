@@ -5,12 +5,12 @@ import { SongList } from "@/components/SongList";
 export default function SongsPage() {
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:py-10">
-      <nav className="mb-4 flex justify-end">
-        <Link
-          href="/setlists"
-          className="text-sm text-muted hover:text-foreground transition-colors"
-        >
+      <nav className="mb-4 flex justify-end gap-4 text-sm text-muted">
+        <Link href="/setlists" className="hover:text-foreground transition-colors">
           Setlists →
+        </Link>
+        <Link href="/settings" className="hover:text-foreground transition-colors">
+          Definições
         </Link>
       </nav>
 
