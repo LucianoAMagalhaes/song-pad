@@ -23,16 +23,17 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Fase:** Primeira UI no ar — ecrã de lista de músicas
+- **Fase:** Editor de músicas funcional — criar e editar cifras
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
 - **PWA configurada:** Sim — Serwist (`@serwist/next` 9.5.x) + manifest + ícones placeholder
 - **Camada de dados:** Sim — Dexie (`songpad` DB v1) com tabelas `songs` e `setlists`; repositórios em `src/repositories/`
 - **Lógica de acordes:** Sim — `chordProParser` (parse/serialize) + `chordTransposer` (transposeChord/transposeContent) em `src/lib/`
-- **UI base:** Sim — tema dark Spotify-inspired, primitivos `Button`/`Input`/`EmptyState` em `src/components/ui/`, `SongCard` + `SongList`, ecrã `/songs` com pesquisa e estado vazio
-- **Última branch trabalhada:** `feat/songs-list`
-- **Último PR merged:** #5 (`feat/chord-logic`)
+- **UI base:** Sim — tema dark Spotify-inspired, primitivos `Button`/`Input`/`Textarea`/`EmptyState` em `src/components/ui/`, `SongCard` + `SongList`, ecrã `/songs` com pesquisa e estado vazio
+- **Editor de músicas:** Sim — `SongForm` partilhado entre `/songs/new` e `/songs/[id]/edit`, validação de título obrigatório, redirecciona para `/songs` após guardar
+- **Última branch trabalhada:** `feat/song-editor`
+- **Último PR merged:** #6 (`feat/songs-list`)
 
 > ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código.
 
@@ -61,7 +62,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - [x] Implementar `chordProParser.ts` com testes
 - [x] Implementar `chordTransposer.ts` com testes
 - [x] Ecrã: lista de músicas
-- [ ] Ecrã: criar/editar música
+- [x] Ecrã: criar/editar música
 - [ ] Ecrã: visualizador de música com transposição
 - [ ] Ecrã: setlists
 - [ ] Ecrã: player de setlist
