@@ -23,7 +23,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Fase:** Player de setlist em modo palco com transposição por música
+- **Fase:** MVP completo — biblioteca, setlists, player e backup/restore funcionais
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
@@ -35,8 +35,9 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Visualizador de músicas:** Sim — `/songs/[id]` com `ChordRenderer` (acordes acima da sílaba), `Transposer` (−/+/↻ com `C → D`), inferência sharps/flats baseada no tom alvo, e acções Editar/Eliminar/Voltar
 - **Setlists:** Sim — `SetlistForm` partilhado entre `/setlists/new` e `/setlists/[id]/edit`, com pesquisa de músicas, drag-and-drop (`@dnd-kit`) para reordenar, validação de nome obrigatório e eliminação a partir do form de edição. `SetlistCard` + `SetlistList` para a listagem em `/setlists`. Navegação Songs ↔ Setlists no header de cada página.
 - **Player de setlist:** Sim — `/setlists/[id]` (stage view) com `SetlistPlayer`: uma música de cada vez, navegação Anterior/Seguinte + teclado ←/→ (ignora foco em inputs), indicador "n / total", transposição por música persistida em memória durante a sessão, edge cases (setlist vazia + música órfã). Helpers de tom (`shouldUseFlats`, `safeTransposeKey`) extraídos para `src/lib/keyDisplay.ts` e partilhados com o viewer individual.
-- **Última branch trabalhada:** `feat/setlist-player`
-- **Último PR merged:** #9 (`feat/setlists`)
+- **Definições e backup:** Sim — `/settings` com export JSON (`buildBackup` + `triggerJsonDownload`, nome `songpad-backup-YYYY-MM-DD.json`) e import (`parseBackup` valida version + schema; `summarizeImport` mostra preview no `window.confirm`; aplicação via `songRepository.upsert` / `setlistRepository.upsert`, merge por id). Link "Definições" no header de `/songs` e `/setlists`. Cobertura em `src/__tests__/backup.test.ts`.
+- **Última branch trabalhada:** `feat/settings-backup`
+- **Último PR merged:** #10 (`feat/setlist-player`)
 
 > ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código.
 
@@ -69,7 +70,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - [x] Ecrã: visualizador de música com transposição
 - [x] Ecrã: setlists
 - [x] Ecrã: player de setlist
-- [ ] Ecrã: definições (exportar/importar backup)
+- [x] Ecrã: definições (exportar/importar backup)
 
 ## Stack Tecnológica
 
