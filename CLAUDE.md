@@ -27,10 +27,13 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
-- **Última branch trabalhada:** `chore/tooling`
-- **Último PR merged:** #1 (`chore/bootstrap-next`)
+- **PWA configurada:** Sim — Serwist (`@serwist/next` 9.5.x) + manifest + ícones placeholder
+- **Última branch trabalhada:** `chore/pwa-config`
+- **Último PR merged:** #2 (`chore/tooling`)
 
-> ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código. Validar compatibilidade do `next-pwa` com Next 16 quando chegar ao PR do PWA — pode ser necessário usar `@ducanh2912/next-pwa` ou alternativa equivalente.
+> ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código.
+
+> ⚠️ **Webpack obrigatório (não Turbopack)**: o `@serwist/next` não suporta Turbopack. Os scripts `dev` e `build` correm com `--webpack`. Quando o Serwist suportar Turbopack (ver https://github.com/serwist/serwist/issues/54), remover as flags. Build mais lento mas funcional.
 
 ### O que já está decidido
 
@@ -48,7 +51,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - [x] Iniciar projecto com `create-next-app` e configurar TypeScript strict
 - [x] Configurar Prettier + Husky + lint-staged
 - [x] Configurar Vitest
-- [ ] Configurar next-pwa (manifest + Service Worker) — validar compatibilidade com Next 16
+- [x] Configurar PWA (manifest + Service Worker via Serwist) — usar `--webpack`
 - [ ] Implementar modelos de dados (`song.ts`, `setlist.ts`)
 - [ ] Implementar `db.ts` (instância Dexie com tabelas)
 - [ ] Implementar repositórios (`songRepository.ts`, `setlistRepository.ts`)
@@ -63,11 +66,11 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 ## Stack Tecnológica
 
-- **Framework:** Next.js 14+ (App Router)
+- **Framework:** Next.js 16 (App Router, webpack build)
 - **Linguagem:** TypeScript (strict mode)
-- **Estilização:** Tailwind CSS
+- **Estilização:** Tailwind v4
 - **Armazenamento local:** IndexedDB via Dexie.js
-- **PWA:** next-pwa (Service Worker + manifest)
+- **PWA:** Serwist (`@serwist/next` + `serwist`) — Service Worker em `src/app/sw.ts`, manifest em `src/app/manifest.ts`
 - **Qualidade de código:** Prettier + Husky + lint-staged
 - **Testes:** Vitest
 - **Cloud (futuro):** Firebase (Auth + Firestore)
