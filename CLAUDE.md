@@ -23,15 +23,16 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Fase:** Lógica de domínio pronta — próximo passo é UI
+- **Fase:** Primeira UI no ar — ecrã de lista de músicas
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
 - **PWA configurada:** Sim — Serwist (`@serwist/next` 9.5.x) + manifest + ícones placeholder
 - **Camada de dados:** Sim — Dexie (`songpad` DB v1) com tabelas `songs` e `setlists`; repositórios em `src/repositories/`
 - **Lógica de acordes:** Sim — `chordProParser` (parse/serialize) + `chordTransposer` (transposeChord/transposeContent) em `src/lib/`
-- **Última branch trabalhada:** `feat/chord-logic`
-- **Último PR merged:** #4 (`feat/data-models`)
+- **UI base:** Sim — tema dark Spotify-inspired, primitivos `Button`/`Input`/`EmptyState` em `src/components/ui/`, `SongCard` + `SongList`, ecrã `/songs` com pesquisa e estado vazio
+- **Última branch trabalhada:** `feat/songs-list`
+- **Último PR merged:** #5 (`feat/chord-logic`)
 
 > ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código.
 
@@ -59,7 +60,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - [x] Implementar repositórios (`songRepository.ts`, `setlistRepository.ts`)
 - [x] Implementar `chordProParser.ts` com testes
 - [x] Implementar `chordTransposer.ts` com testes
-- [ ] Ecrã: lista de músicas
+- [x] Ecrã: lista de músicas
 - [ ] Ecrã: criar/editar música
 - [ ] Ecrã: visualizador de música com transposição
 - [ ] Ecrã: setlists
