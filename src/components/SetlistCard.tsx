@@ -11,7 +11,7 @@ export function SetlistCard({ setlist }: SetlistCardProps) {
 
   return (
     <Link
-      href={`/setlists/${setlist.id}/edit`}
+      href={`/setlists/${setlist.id}`}
       className="flex items-center gap-4 p-4 rounded-lg bg-surface border border-border hover:bg-surface-hover hover:border-accent/50 transition-colors group"
     >
       <div className="flex-shrink-0 w-12 h-12 rounded-md bg-accent/10 text-accent flex items-center justify-center font-bold text-lg">

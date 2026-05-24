@@ -7,7 +7,8 @@ import { ChordRenderer } from "@/components/ChordRenderer";
 import { Transposer } from "@/components/Transposer";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { transposeChord, transposeContent } from "@/lib/chordTransposer";
+import { transposeContent } from "@/lib/chordTransposer";
+import { safeTransposeKey, shouldUseFlats } from "@/lib/keyDisplay";
 import { songRepository } from "@/repositories/songRepository";
 import type { Song } from "@/models/song";
 
@@ -16,43 +17,6 @@ interface ViewSongPageProps {
 }
 
 type LoadState = { status: "loading" } | { status: "not-found" } | { status: "ready"; song: Song };
-
-const FLAT_TARGET_ROOTS = new Set(["Db", "Eb", "F", "Gb", "Ab", "Bb"]);
-const SHARP_TO_FLAT: Record<string, string> = {
-  "C#": "Db",
-  "D#": "Eb",
-  "F#": "Gb",
-  "G#": "Ab",
-  "A#": "Bb",
-};
-
-/**
- * Pick sharp vs flat spelling based on the *target* key. Flat-tradition keys
- * (F, Bb, Eb, Ab, Db, Gb) get flat accidentals; everything else gets sharps.
- * Returns false when we can't make sense of the key so the default (sharps)
- * stays in charge.
- */
-function shouldUseFlats(originalKey: string, semitones: number): boolean {
-  if (!originalKey) return false;
-  try {
-    const targetSharp = transposeChord(originalKey, semitones, { preferFlats: false });
-    const root = targetSharp.match(/^([A-G][#b]?)/)?.[1];
-    if (!root) return false;
-    const candidate = SHARP_TO_FLAT[root] ?? root;
-    return FLAT_TARGET_ROOTS.has(candidate);
-  } catch {
-    return false;
-  }
-}
-
-function safeTransposeKey(originalKey: string, semitones: number, preferFlats: boolean): string {
-  if (!originalKey) return "";
-  try {
-    return transposeChord(originalKey, semitones, { preferFlats });
-  } catch {
-    return originalKey;
-  }
-}
 
 export default function ViewSongPage({ params }: ViewSongPageProps) {
   const { id } = use(params);
