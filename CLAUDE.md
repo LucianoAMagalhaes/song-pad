@@ -23,7 +23,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Fase:** Setlists com CRUD completo e reordenação drag-and-drop
+- **Fase:** Player de setlist em modo palco com transposição por música
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
@@ -34,8 +34,9 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Editor de músicas:** Sim — `SongForm` partilhado entre `/songs/new` e `/songs/[id]/edit`, validação de título obrigatório, redirecciona para `/songs` após guardar
 - **Visualizador de músicas:** Sim — `/songs/[id]` com `ChordRenderer` (acordes acima da sílaba), `Transposer` (−/+/↻ com `C → D`), inferência sharps/flats baseada no tom alvo, e acções Editar/Eliminar/Voltar
 - **Setlists:** Sim — `SetlistForm` partilhado entre `/setlists/new` e `/setlists/[id]/edit`, com pesquisa de músicas, drag-and-drop (`@dnd-kit`) para reordenar, validação de nome obrigatório e eliminação a partir do form de edição. `SetlistCard` + `SetlistList` para a listagem em `/setlists`. Navegação Songs ↔ Setlists no header de cada página.
-- **Última branch trabalhada:** `feat/setlists`
-- **Último PR merged:** #8 (`feat/song-viewer`)
+- **Player de setlist:** Sim — `/setlists/[id]` (stage view) com `SetlistPlayer`: uma música de cada vez, navegação Anterior/Seguinte + teclado ←/→ (ignora foco em inputs), indicador "n / total", transposição por música persistida em memória durante a sessão, edge cases (setlist vazia + música órfã). Helpers de tom (`shouldUseFlats`, `safeTransposeKey`) extraídos para `src/lib/keyDisplay.ts` e partilhados com o viewer individual.
+- **Última branch trabalhada:** `feat/setlist-player`
+- **Último PR merged:** #9 (`feat/setlists`)
 
 > ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código.
 
@@ -67,7 +68,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - [x] Ecrã: criar/editar música
 - [x] Ecrã: visualizador de música com transposição
 - [x] Ecrã: setlists
-- [ ] Ecrã: player de setlist
+- [x] Ecrã: player de setlist
 - [ ] Ecrã: definições (exportar/importar backup)
 
 ## Stack Tecnológica
