@@ -6,7 +6,7 @@ SongPad é um songbook digital em formato PWA para músicos. Permite criar, orga
 
 - **Nome da app:** SongPad
 - **Repositório:** song-pad
-- **Âmbito actual:** Uso pessoal (sem deployment público planeado por agora)
+- **Âmbito actual:** Uso pessoal, mas com sincronização entre os dispositivos do próprio utilizador (tablet, smartphone, desktop). Implica deployment com HTTPS para a PWA ser instalável. Acesso protegido por autenticação (só o utilizador acede).
 
 ## Fluxo de Trabalho com o Claude Code
 
@@ -23,7 +23,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Fase:** MVP completo — biblioteca, setlists, player e backup/restore funcionais
+- **Fase:** MVP (Fase 1) completo. Próxima fase a iniciar: **Fase 3 (cloud)** — sincronização entre dispositivos via Firebase (decisão tomada na sessão de 2026-05-29; ver "Decisão de arquitectura cloud" abaixo). A Fase 2 (pós-MVP) fica adiada por opção do utilizador.
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
@@ -37,7 +37,19 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Player de setlist:** Sim — `/setlists/[id]` (stage view) com `SetlistPlayer`: uma música de cada vez, navegação Anterior/Seguinte + teclado ←/→ (ignora foco em inputs), indicador "n / total", transposição por música persistida em memória durante a sessão, edge cases (setlist vazia + música órfã). Helpers de tom (`shouldUseFlats`, `safeTransposeKey`) extraídos para `src/lib/keyDisplay.ts` e partilhados com o viewer individual.
 - **Definições e backup:** Sim — `/settings` com export JSON (`buildBackup` + `triggerJsonDownload`, nome `songpad-backup-YYYY-MM-DD.json`) e import (`parseBackup` valida version + schema; `summarizeImport` mostra preview no `window.confirm`; aplicação via `songRepository.upsert` / `setlistRepository.upsert`, merge por id). Link "Definições" no header de `/songs` e `/setlists`. Cobertura em `src/__tests__/backup.test.ts`.
 - **Última branch trabalhada:** `feat/settings-backup`
-- **Último PR merged:** #10 (`feat/setlist-player`)
+- **Último PR merged:** #11 (`feat/settings-backup`)
+
+### Decisão de arquitectura cloud (sessão 2026-05-29)
+
+Objectivo: as músicas e setlists devem sincronizar automaticamente entre os dispositivos do utilizador (tablet, smartphone, desktop), mesmo sendo uso pessoal.
+
+Rumo decidido — **tudo no Firebase, plano gratuito Spark como objectivo**:
+
+- **Hosting:** Firebase Hosting (clássico, estático). Objectivo: configurar a app como **export estático do Next.js** (`output: 'export'`) para caber no plano Spark gratuito e sem cartão de crédito. A app é toda client-side (dados no browser/Firestore), por isso o export estático é viável. **A validar logo no início:** as rotas dinâmicas `/songs/[id]` e `/setlists/[id]` têm de resolver no cliente em modo estático. Se o export estático se revelar inviável e for preciso SSR, isso obriga a Firebase App Hosting → plano Blaze (pede cartão; ~€0/mês na realidade, mas pôr alerta/limite de orçamento no Google Cloud). Nesse caso, falar com o utilizador antes de mudar para Blaze.
+- **Base de dados:** Cloud Firestore (plano Spark — 1 GiB, ~50k leituras/dia, ~20k escritas/dia; muito acima do necessário). Sync automático em tempo real e offline-first.
+- **Autenticação:** Firebase Auth com **login Google**. Só o utilizador acede aos seus dados (regras de segurança do Firestore por `uid`).
+- **Migração de dados:** a camada de acesso está isolada em `src/repositories/`, por isso a sincronização entra aí. Há que migrar os dados que já existem em IndexedDB local para o Firestore (reaproveitar o `buildBackup`/import existente ou rotina de migração própria).
+- **Custo esperado:** €0/mês à escala de uso pessoal.
 
 > ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código.
 
@@ -71,6 +83,18 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - [x] Ecrã: setlists
 - [x] Ecrã: player de setlist
 - [x] Ecrã: definições (exportar/importar backup)
+
+### Fase 3 — Sincronização cloud (Firebase) — a iniciar
+
+> Ordem sugerida. A decisão de arquitectura está em "Estado Actual do Projeto".
+
+- [ ] Criar projecto Firebase + configurar app web (chaves em variáveis de ambiente)
+- [ ] Validar export estático do Next.js (`output: 'export'`) com as rotas dinâmicas `[id]` a resolver no cliente — confirmar que cabe no plano Spark gratuito
+- [ ] Configurar Firebase Auth com login Google + ecrã/fluxo de login
+- [ ] Definir schema Firestore (colecções `songs`, `setlists` por `uid`) + regras de segurança
+- [ ] Adaptar `songRepository` e `setlistRepository` para Firestore (sync em tempo real, offline-first)
+- [ ] Rotina de migração dos dados locais (IndexedDB) para o Firestore
+- [ ] Configurar Firebase Hosting + deploy
 
 ## Stack Tecnológica
 
@@ -209,8 +233,11 @@ O campo `version` permite gerir migrações futuras do formato. Em caso de confl
 
 ## Fase 3 (cloud + nativo)
 
-- Autenticação Firebase
-- Sincronização entre dispositivos (Firestore)
+> **Em curso** a partir de 2026-05-29 (ver "Decisão de arquitectura cloud" e checklist em "Próximos Passos"). Tudo no Firebase (Hosting + Firestore + Auth Google), objectivo plano gratuito Spark.
+
+- Autenticação Firebase (login Google)
+- Sincronização entre dispositivos (Firestore, offline-first)
+- Deployment via Firebase Hosting (export estático Next.js)
 - Partilha de músicas entre utilizadores
 - Biblioteca partilhada para bandas/grupos
 - Empacotamento com Capacitor para App Store / Play Store
