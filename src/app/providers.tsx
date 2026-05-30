@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthGuard } from "@/components/AuthGuard";
+import { LocalDataMigration } from "@/components/LocalDataMigration";
 
 /**
  * Client-side providers mounted once at the root. Keeps `layout.tsx` a Server
@@ -11,6 +12,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
+      <LocalDataMigration />
       <AuthGuard>{children}</AuthGuard>
     </AuthProvider>
   );
