@@ -2,7 +2,6 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useLiveQuery } from "dexie-react-hooks";
 import { Button } from "@/components/ui/Button";
 import {
   BACKUP_VERSION,
@@ -15,6 +14,8 @@ import {
 } from "@/lib/backup";
 import { setlistRepository } from "@/repositories/setlistRepository";
 import { songRepository } from "@/repositories/songRepository";
+import { useSongs } from "@/hooks/useSongs";
+import { useSetlists } from "@/hooks/useSetlists";
 import { useAuth } from "@/contexts/AuthContext";
 
 type ImportStatus =
@@ -35,8 +36,8 @@ function exportFilename(now: Date): string {
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
-  const songs = useLiveQuery(() => songRepository.list(), [], undefined);
-  const setlists = useLiveQuery(() => setlistRepository.list(), [], undefined);
+  const songs = useSongs();
+  const setlists = useSetlists();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isExporting, setIsExporting] = useState(false);
