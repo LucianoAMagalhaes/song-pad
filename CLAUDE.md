@@ -39,8 +39,9 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Export estático validado:** Sim — `next.config.ts` com `output: "export"`. As 4 rotas dinâmicas (`/songs/[id]`, `/songs/[id]/edit`, `/setlists/[id]`, `/setlists/[id]/edit`) foram refactorizadas: cada `page.tsx` é agora um Server Component fino que exporta `generateStaticParams()` (placeholder `{ id: "_" }`) e renderiza um componente client co-localizado (`SongView`, `SongEditor`, `SetlistPlay`, `SetlistEditor`) que lê o `id` em runtime via `useParams()`. O `manifest.ts` levou `export const dynamic = "force-static"`. Build gera `out/songs/_.html`, `out/songs/_/edit.html`, `out/setlists/_.html`, `out/setlists/_/edit.html` como cascas. Validado com Chromium headless servindo `out/` com os rewrites planeados: as rotas `[id]` resolvem no cliente (não dão 404). **Conclusão: viável no plano Spark gratuito.** Ver "Rewrites do Firebase Hosting" abaixo.
 - **Projecto Firebase criado:** Sim — ID `song-pad-app` (display "SongPad"), conta `lucianoamaro.m@gmail.com`. App web registada (App ID `1:1072999656233:web:bcb930f2c0a94cc8636538`). Consola: https://console.firebase.google.com/project/song-pad-app/overview. URL de hosting prevista: `https://song-pad-app.web.app`.
 - **Config Firebase:** Sim — chaves em `NEXT_PUBLIC_FIREBASE_*` no `.env.local` (fora do Git; template em `.env.example`). SDK `firebase` 12.x instalado. Inicialização singleton em `src/lib/firebase.ts` (`getFirebaseApp()`). Auth e Firestore entram nos passos seguintes.
-- **Última branch trabalhada:** `feat/firebase-setup`
-- **Último PR merged:** #13 (`chore/validate-static-export`)
+- **Autenticação (login Google):** Sim — `AuthProvider` em `src/contexts/AuthContext.tsx` (observa `onAuthStateChanged`, expõe `user`/`loading`/`signInWithGoogle`/`signOut`; `getAuth` resolvido lazy, client-only). `AuthGuard` em `src/components/AuthGuard.tsx` protege rotas (não-autenticado → `/login`; autenticado em `/login` → `/songs`; spinner enquanto resolve). Ambos montados no root via `src/app/providers.tsx` (wrapper client dentro do `layout.tsx` Server Component). Página de login dedicada em `src/app/login/page.tsx` (`signInWithPopup`, tema dark, botão "Entrar com Google"). Secção "Conta" + botão "Sair" em `/settings`. Build estático continua a passar (`/login` prerenderizada). **Falta ativar o provedor Google no console** (Authentication → Sign-in method → Google → Enable) para o login funcionar em runtime.
+- **Última branch trabalhada:** `feat/firebase-auth`
+- **Último PR merged:** #14 (`feat/firebase-setup`)
 
 ### Decisão de arquitectura cloud (sessão 2026-05-29)
 
@@ -108,7 +109,7 @@ Os ficheiros estáticos reais (`/songs`, `/songs/new`, etc.) são servidos antes
 
 - [x] Criar projecto Firebase + configurar app web (chaves em variáveis de ambiente) ✅ projecto `song-pad-app`, app web registada, SDK `firebase` 12.x, `src/lib/firebase.ts`
 - [x] Validar export estático do Next.js (`output: 'export'`) com as rotas dinâmicas `[id]` a resolver no cliente — confirmar que cabe no plano Spark gratuito ✅ viável (ver "Estado Actual")
-- [ ] Configurar Firebase Auth com login Google + ecrã/fluxo de login
+- [x] Configurar Firebase Auth com login Google + ecrã/fluxo de login ✅ `AuthContext` + `AuthGuard` + `/login` + "Sair" em `/settings`. Falta ativar o provedor Google no console.
 - [ ] Definir schema Firestore (colecções `songs`, `setlists` por `uid`) + regras de segurança
 - [ ] Adaptar `songRepository` e `setlistRepository` para Firestore (sync em tempo real, offline-first)
 - [ ] Rotina de migração dos dados locais (IndexedDB) para o Firestore

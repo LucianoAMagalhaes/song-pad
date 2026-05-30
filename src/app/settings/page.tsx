@@ -15,6 +15,7 @@ import {
 } from "@/lib/backup";
 import { setlistRepository } from "@/repositories/setlistRepository";
 import { songRepository } from "@/repositories/songRepository";
+import { useAuth } from "@/contexts/AuthContext";
 
 type ImportStatus =
   | { kind: "idle" }
@@ -33,13 +34,26 @@ function exportFilename(now: Date): string {
 }
 
 export default function SettingsPage() {
+  const { user, signOut } = useAuth();
   const songs = useLiveQuery(() => songRepository.list(), [], undefined);
   const setlists = useLiveQuery(() => setlistRepository.list(), [], undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [status, setStatus] = useState<ImportStatus>({ kind: "idle" });
+
+  async function handleSignOut() {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      // AuthGuard redirects to /login once the user becomes null.
+    } finally {
+      setIsSigningOut(false);
+    }
+  }
 
   const isLoading = songs === undefined || setlists === undefined;
   const songCount = songs?.length ?? 0;
@@ -122,6 +136,23 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-bold text-foreground">Definições</h1>
         <p className="text-muted mt-1">Cópia de segurança da tua biblioteca.</p>
       </header>
+
+      {user ? (
+        <section className="rounded-2xl border border-border bg-surface p-5 mb-6 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-1">
+              Conta
+            </h2>
+            <p className="text-foreground truncate">{user.displayName ?? user.email}</p>
+            {user.displayName && user.email ? (
+              <p className="text-muted text-sm truncate">{user.email}</p>
+            ) : null}
+          </div>
+          <Button type="button" variant="secondary" onClick={handleSignOut} disabled={isSigningOut}>
+            {isSigningOut ? "A sair..." : "Sair"}
+          </Button>
+        </section>
+      ) : null}
 
       <section className="rounded-2xl border border-border bg-surface p-5 mb-6">
         <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-1">
