@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouteId } from "@/hooks/useRouteId";
 import { SetlistForm } from "@/components/SetlistForm";
 import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -15,16 +16,17 @@ type LoadState =
   | { status: "ready"; setlist: Setlist };
 
 /**
- * Setlist editor UI. Reads the `id` from the route at runtime via
- * `useParams()` so it works under static export, where the real id only
- * exists in the browser URL (see the page wrapper for the rationale).
+ * Setlist editor UI. Reads the `id` from the real browser URL via
+ * `useRouteId()` so it works under static export, where the real id only
+ * exists in the URL (see the page wrapper for the rationale).
  */
 export function SetlistEditor() {
-  const { id } = useParams<{ id: string }>();
+  const id = useRouteId();
   const router = useRouter();
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   useEffect(() => {
+    if (!id) return;
     let cancelled = false;
     setlistRepository.getById(id).then((setlist) => {
       if (cancelled) return;
@@ -36,12 +38,14 @@ export function SetlistEditor() {
   }, [id]);
 
   async function handleSubmit(input: SetlistInput) {
+    if (!id) return;
     await setlistRepository.update(id, input);
     router.push("/setlists");
     router.refresh();
   }
 
   async function handleDelete() {
+    if (!id) return;
     await setlistRepository.remove(id);
     router.push("/setlists");
     router.refresh();

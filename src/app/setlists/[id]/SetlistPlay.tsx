@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useRouteId } from "@/hooks/useRouteId";
 import { SetlistPlayer } from "@/components/SetlistPlayer";
 import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -15,15 +15,16 @@ type LoadState =
   | { status: "ready"; setlist: Setlist };
 
 /**
- * Setlist player (stage view). Reads the `id` from the route at runtime via
- * `useParams()` so it works under static export, where the real id only
- * exists in the browser URL (see the page wrapper for the rationale).
+ * Setlist player (stage view). Reads the `id` from the real browser URL via
+ * `useRouteId()` so it works under static export, where the real id only
+ * exists in the URL (see the page wrapper for the rationale).
  */
 export function SetlistPlay() {
-  const { id } = useParams<{ id: string }>();
+  const id = useRouteId();
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   useEffect(() => {
+    if (!id) return;
     let cancelled = false;
     setlistRepository.getById(id).then((setlist) => {
       if (cancelled) return;

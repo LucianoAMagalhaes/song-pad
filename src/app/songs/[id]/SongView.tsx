@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouteId } from "@/hooks/useRouteId";
 import { ChordRenderer } from "@/components/ChordRenderer";
 import { Transposer } from "@/components/Transposer";
 import { Button, LinkButton } from "@/components/ui/Button";
@@ -15,18 +16,18 @@ import type { Song } from "@/models/song";
 type LoadState = { status: "loading" } | { status: "not-found" } | { status: "ready"; song: Song };
 
 /**
- * Song viewer UI. Reads the `id` from the route at runtime via `useParams()`
- * so it works under static export (`output: "export"`), where the page shell
- * is generated from a placeholder param and the real id only exists in the
- * browser URL.
+ * Song viewer UI. Reads the `id` from the real browser URL via `useRouteId()`
+ * so it works under static export (`output: "export"`), where the page is
+ * served from a placeholder shell and the real id only exists in the URL.
  */
 export function SongView() {
-  const { id } = useParams<{ id: string }>();
+  const id = useRouteId();
   const router = useRouter();
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [semitones, setSemitones] = useState(0);
 
   useEffect(() => {
+    if (!id) return;
     let cancelled = false;
     songRepository.getById(id).then((song) => {
       if (cancelled) return;
