@@ -23,7 +23,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Fase:** MVP (Fase 1) completo. Próxima fase a iniciar: **Fase 3 (cloud)** — sincronização entre dispositivos via Firebase (decisão tomada na sessão de 2026-05-29; ver "Decisão de arquitectura cloud" abaixo). A Fase 2 (pós-MVP) fica adiada por opção do utilizador.
+- **Fase:** MVP (Fase 1) completo. **Fase 3 (cloud) completa** (sessão 2026-05-30): login Google, Firestore (schema + regras + repositórios real-time/offline), migração de dados locais e deploy em https://song-pad-app.web.app. A Fase 2 (pós-MVP) continua adiada por opção do utilizador. Próximos rumos possíveis: itens da Fase 2, ou partilha/bandas e empacotamento Capacitor da Fase 3.
 - **Repositório criado:** Sim — https://github.com/LucianoAMagalhaes/song-pad (público)
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
@@ -42,8 +42,9 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Autenticação (login Google):** Sim — `AuthProvider` em `src/contexts/AuthContext.tsx` (observa `onAuthStateChanged`, expõe `user`/`loading`/`signInWithGoogle`/`signOut`; `getAuth` resolvido lazy, client-only). `AuthGuard` em `src/components/AuthGuard.tsx` protege rotas (não-autenticado → `/login`; autenticado em `/login` → `/songs`; spinner enquanto resolve). Ambos montados no root via `src/app/providers.tsx` (wrapper client dentro do `layout.tsx` Server Component). Página de login dedicada em `src/app/login/page.tsx` (`signInWithPopup`, tema dark, botão "Entrar com Google"). Secção "Conta" + botão "Sair" em `/settings`. Build estático continua a passar (`/login` prerenderizada). Provedor Google **ativado no console** e login testado de ponta a ponta pelo utilizador (sessão 2026-05-30).
 - **Schema Firestore + regras de segurança:** Sim — estrutura **aninhada por utilizador**: `users/{uid}/songs/{songId}` (campos do modelo `Song`) e `users/{uid}/setlists/{setlistId}` (campos de `Setlist`); o `id` (uuid) existente é o ID do documento. Regras em `firestore.rules` (`allow read, write: if request.auth != null && request.auth.uid == uid`) — só o dono autenticado acede. Config em `firebase.json` (secção `firestore`) + `firestore.indexes.json` (vazio; sem índices compostos) + `.firebaserc` (projeto default `song-pad-app`). **Base de dados Firestore criada** (modo Native, região `southamerica-east1`/São Paulo — permanente) e **regras já deployadas** (`firebase deploy --only firestore:rules`). API Firestore ativada via `gcloud`.
 - **Migração de dados locais:** Sim — `src/lib/migration.ts` (`migrateLocalData(uid)` lê o Dexie e faz `upsert` no Firestore, idempotente por `id`; sinalizador `songpad:migrated:{uid}` no `localStorage`; `countLocalData`/`hasMigrated`). Corre **automaticamente no primeiro login** via `<LocalDataMigration />` (montado em `src/app/providers.tsx`, em segundo plano; em falha não marca o sinalizador → retry no próximo login). **Botão de reforço** "Migrar dados locais para a nuvem" em `/settings` (com contagem + `window.confirm` + resultado). Dados locais mantêm-se intactos como rede de segurança. Testes em `src/__tests__/migration.test.ts`.
-- **Última branch trabalhada:** `feat/local-data-migration`
-- **Último PR merged:** #17 (`feat/firestore-repositories`)
+- **Deploy (Firebase Hosting):** Sim — **app no ar em https://song-pad-app.web.app** 🎉. Secção `hosting` no `firebase.json` (`public: "out"`, `cleanUrls: true`, rewrites das rotas dinâmicas → cascas `_.html`). Script `npm run deploy` (`build && firebase deploy`). Export estático condicional ao build de produção (`next.config.ts`), por isso `next dev` corre normal. Verificado ao vivo: rotas estáticas e rewrites dinâmicos devolvem 200; `/login` renderiza. Login Google funciona no domínio (Firebase autoriza `*.web.app`/`*.firebaseapp.com` por defeito).
+- **Última branch trabalhada:** `chore/firebase-hosting-deploy`
+- **Último PR merged:** #19 (`fix/dev-dynamic-routes`)
 
 ### Decisão de arquitectura cloud (sessão 2026-05-29)
 
@@ -115,7 +116,7 @@ Os ficheiros estáticos reais (`/songs`, `/songs/new`, etc.) são servidos antes
 - [x] Definir schema Firestore (colecções `songs`, `setlists` por `uid`) + regras de segurança ✅ aninhado em `users/{uid}/...`, `firestore.rules` deployadas, BD criada em `southamerica-east1`
 - [x] Adaptar `songRepository` e `setlistRepository` para Firestore (sync em tempo real, offline-first) ✅ Firestore fonte única + cache offline; hooks `useSongs`/`useSetlists` (`onSnapshot`) substituem `useLiveQuery`
 - [x] Rotina de migração dos dados locais (IndexedDB) para o Firestore ✅ automática no 1.º login (`<LocalDataMigration />`) + botão de reforço em `/settings`; idempotente, mantém os dados locais
-- [ ] Configurar Firebase Hosting + deploy
+- [x] Configurar Firebase Hosting + deploy ✅ **no ar em https://song-pad-app.web.app**; `firebase.json` com hosting + rewrites, `npm run deploy`
 
 ## Stack Tecnológica
 

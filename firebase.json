@@ -2,5 +2,16 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "out",
+    "cleanUrls": true,
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "/songs/*/edit", "destination": "/songs/_/edit.html" },
+      { "source": "/songs/*", "destination": "/songs/_.html" },
+      { "source": "/setlists/*/edit", "destination": "/setlists/_/edit.html" },
+      { "source": "/setlists/*", "destination": "/setlists/_.html" }
+    ]
   }
 }
