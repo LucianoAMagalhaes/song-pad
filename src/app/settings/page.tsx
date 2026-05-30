@@ -17,6 +17,7 @@ import { songRepository } from "@/repositories/songRepository";
 import { useSongs } from "@/hooks/useSongs";
 import { useSetlists } from "@/hooks/useSetlists";
 import { useAuth } from "@/contexts/AuthContext";
+import { countLocalData, migrateLocalData } from "@/lib/migration";
 
 type ImportStatus =
   | { kind: "idle" }
@@ -43,7 +44,43 @@ export default function SettingsPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationMessage, setMigrationMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<ImportStatus>({ kind: "idle" });
+
+  async function handleMigrate() {
+    if (isMigrating || !user) return;
+    const local = await countLocalData();
+    if (local.songs === 0 && local.setlists === 0) {
+      setMigrationMessage("Não há dados locais para migrar.");
+      return;
+    }
+    const confirmed = window.confirm(
+      `Migrar ${formatPlural(local.songs, "música", "músicas")} e ${formatPlural(
+        local.setlists,
+        "setlist",
+        "setlists",
+      )} do dispositivo para a nuvem? Os dados locais mantêm-se.`,
+    );
+    if (!confirmed) return;
+
+    setIsMigrating(true);
+    setMigrationMessage(null);
+    try {
+      const result = await migrateLocalData(user.uid);
+      setMigrationMessage(
+        `Migrados ${formatPlural(result.songs, "música", "músicas")} e ${formatPlural(
+          result.setlists,
+          "setlist",
+          "setlists",
+        )} para a nuvem.`,
+      );
+    } catch {
+      setMigrationMessage("Não foi possível migrar agora. Verifica a ligação e tenta de novo.");
+    } finally {
+      setIsMigrating(false);
+    }
+  }
 
   async function handleSignOut() {
     if (isSigningOut) return;
@@ -213,6 +250,28 @@ export default function SettingsPage() {
             Backup importado: {status.summary.songsAdded} música(s) adicionadas,{" "}
             {status.summary.songsReplaced} substituída(s); {status.summary.setlistsAdded} setlist(s)
             adicionada(s), {status.summary.setlistsReplaced} substituída(s).
+          </p>
+        ) : null}
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-5 mt-6 flex flex-col gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Migrar dados locais</h2>
+          <p className="text-sm text-muted mt-1">
+            Envia para a nuvem as músicas e setlists guardadas neste dispositivo antes da
+            sincronização. Corre automaticamente no primeiro acesso; usa este botão se precisares de
+            repetir. É seguro: não duplica nem apaga nada.
+          </p>
+        </div>
+        <div>
+          <Button type="button" variant="secondary" onClick={handleMigrate} disabled={isMigrating}>
+            {isMigrating ? "A migrar..." : "Migrar dados locais para a nuvem"}
+          </Button>
+        </div>
+
+        {migrationMessage ? (
+          <p role="status" className="text-sm text-accent">
+            {migrationMessage}
           </p>
         ) : null}
       </section>
