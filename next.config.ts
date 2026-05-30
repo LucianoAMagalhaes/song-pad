@@ -12,7 +12,12 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
-  output: "export",
+  // Static export is only needed for the production build (Firebase Hosting).
+  // Enabling it in `next dev` would force every dynamic route id to be known
+  // ahead of time via generateStaticParams — but our ids only exist at runtime
+  // (read client-side via useParams), so dev would error on real ids. In dev we
+  // therefore run a normal server where dynamic routes resolve on demand.
+  ...(isDev ? {} : { output: "export" as const }),
 };
 
 export default withSerwist(nextConfig);
