@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// SongPad — per-user data isolation.
+//
+// Data layout (see CLAUDE.md):
+//   users/{uid}/songs/{songId}
+//   users/{uid}/setlists/{setlistId}
+//
+// A signed-in user may read and write only documents nested under their own
+// `users/{uid}` path. Every other request — including unauthenticated ones and
+// any attempt to reach another user's data — is denied by default.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
