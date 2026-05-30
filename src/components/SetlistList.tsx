@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
-import { setlistRepository } from "@/repositories/setlistRepository";
+import { useSetlists } from "@/hooks/useSetlists";
 import { SetlistCard } from "@/components/SetlistCard";
 import { Input } from "@/components/ui/Input";
 import { LinkButton } from "@/components/ui/Button";
@@ -11,7 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 export function SetlistList() {
   const [query, setQuery] = useState("");
 
-  const setlists = useLiveQuery(() => setlistRepository.search(query), [query], undefined);
+  const setlists = useSetlists(query);
   const isLoading = setlists === undefined;
   const isEmpty = !isLoading && setlists.length === 0;
   const isSearching = query.trim().length > 0;

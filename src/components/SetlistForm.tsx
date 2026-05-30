@@ -2,7 +2,6 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { useLiveQuery } from "dexie-react-hooks";
 import {
   DndContext,
   KeyboardSensor,
@@ -23,7 +22,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { songRepository } from "@/repositories/songRepository";
+import { useSongs } from "@/hooks/useSongs";
 import type { Setlist, SetlistInput } from "@/models/setlist";
 import type { Song } from "@/models/song";
 
@@ -44,7 +43,7 @@ export function SetlistForm({ initialSetlist, submitLabel, onSubmit, onDelete }:
   const [nameError, setNameError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const allSongs = useLiveQuery(() => songRepository.list(), [], undefined);
+  const allSongs = useSongs();
 
   const songsById = useMemo(() => {
     const map = new Map<string, Song>();

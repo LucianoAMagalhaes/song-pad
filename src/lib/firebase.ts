@@ -1,4 +1,11 @@
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+} from "firebase/firestore";
 
 /**
  * Firebase web app configuration, read from `NEXT_PUBLIC_FIREBASE_*` env vars
@@ -21,4 +28,24 @@ const firebaseConfig = {
  */
 export function getFirebaseApp(): FirebaseApp {
   return getApps().length ? getApp() : initializeApp(firebaseConfig);
+}
+
+/**
+ * Returns the Firestore instance, enabling offline persistence (IndexedDB-backed
+ * cache) with multi-tab support on first initialization. Persistence is what
+ * makes the app offline-first: reads are served from the local cache and writes
+ * queue until the device is back online.
+ *
+ * `initializeFirestore` may only run once per app; on subsequent calls (e.g.
+ * Fast Refresh) it throws, so we fall back to the already-initialized instance.
+ */
+export function getFirebaseFirestore(): Firestore {
+  const app = getFirebaseApp();
+  try {
+    return initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    });
+  } catch {
+    return getFirestore(app);
+  }
 }

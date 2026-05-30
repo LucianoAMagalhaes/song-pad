@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
-import { songRepository } from "@/repositories/songRepository";
+import { useSongs } from "@/hooks/useSongs";
 import { SongCard } from "@/components/SongCard";
 import { Input } from "@/components/ui/Input";
 import { LinkButton } from "@/components/ui/Button";
@@ -11,7 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 export function SongList() {
   const [query, setQuery] = useState("");
 
-  const songs = useLiveQuery(() => songRepository.search(query), [query], undefined);
+  const songs = useSongs(query);
   const isLoading = songs === undefined;
   const isEmpty = !isLoading && songs.length === 0;
   const isSearching = query.trim().length > 0;

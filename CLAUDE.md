@@ -28,7 +28,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Projecto Next.js iniciado:** Sim — Next.js **16.2.6** + React **19.2.4** + Tailwind **v4**
 - **Tooling configurado:** Prettier + Husky + lint-staged + Vitest
 - **PWA configurada:** Sim — Serwist (`@serwist/next` 9.5.x) + manifest + ícones placeholder
-- **Camada de dados:** Sim — Dexie (`songpad` DB v1) com tabelas `songs` e `setlists`; repositórios em `src/repositories/` (ambos com `search`)
+- **Camada de dados:** Repositórios em `src/repositories/` agora assentes em **Cloud Firestore** (fonte única da verdade), com cache offline nativo (`persistentLocalCache` + multi-tab) inicializado em `getFirebaseFirestore()` (`src/lib/firebase.ts`). Cada repositório mantém a API assíncrona (`create/getById/list/update/remove/upsert/search`) + um `subscribe(uid, cb)` em tempo real (`onSnapshot`). Converters mapeiam `Date`↔`Timestamp`; `id` (uuid) é o ID do documento. Reatividade na UI via hooks `useSongs`/`useSetlists` (`src/hooks/`, baseados em `onSnapshot` + `useAuth`), que substituíram o `useLiveQuery` do Dexie em `SongList`, `SetlistList`, `SetlistForm` e `/settings`. Helpers puros `filterSongs`/`filterSetlists` testados. **Dexie (`src/lib/db.ts`) mantém-se apenas para a migração** dos dados locais antigos (passo seguinte); deixa de ser usado pela app.
 - **Lógica de acordes:** Sim — `chordProParser` (parse/serialize) + `chordTransposer` (transposeChord/transposeContent) em `src/lib/`
 - **UI base:** Sim — tema dark Spotify-inspired, primitivos `Button`/`Input`/`Textarea`/`EmptyState` em `src/components/ui/`, `SongCard` + `SongList`, ecrã `/songs` com pesquisa e estado vazio
 - **Editor de músicas:** Sim — `SongForm` partilhado entre `/songs/new` e `/songs/[id]/edit`, validação de título obrigatório, redirecciona para `/songs` após guardar
@@ -41,8 +41,8 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Config Firebase:** Sim — chaves em `NEXT_PUBLIC_FIREBASE_*` no `.env.local` (fora do Git; template em `.env.example`). SDK `firebase` 12.x instalado. Inicialização singleton em `src/lib/firebase.ts` (`getFirebaseApp()`). Auth e Firestore entram nos passos seguintes.
 - **Autenticação (login Google):** Sim — `AuthProvider` em `src/contexts/AuthContext.tsx` (observa `onAuthStateChanged`, expõe `user`/`loading`/`signInWithGoogle`/`signOut`; `getAuth` resolvido lazy, client-only). `AuthGuard` em `src/components/AuthGuard.tsx` protege rotas (não-autenticado → `/login`; autenticado em `/login` → `/songs`; spinner enquanto resolve). Ambos montados no root via `src/app/providers.tsx` (wrapper client dentro do `layout.tsx` Server Component). Página de login dedicada em `src/app/login/page.tsx` (`signInWithPopup`, tema dark, botão "Entrar com Google"). Secção "Conta" + botão "Sair" em `/settings`. Build estático continua a passar (`/login` prerenderizada). Provedor Google **ativado no console** e login testado de ponta a ponta pelo utilizador (sessão 2026-05-30).
 - **Schema Firestore + regras de segurança:** Sim — estrutura **aninhada por utilizador**: `users/{uid}/songs/{songId}` (campos do modelo `Song`) e `users/{uid}/setlists/{setlistId}` (campos de `Setlist`); o `id` (uuid) existente é o ID do documento. Regras em `firestore.rules` (`allow read, write: if request.auth != null && request.auth.uid == uid`) — só o dono autenticado acede. Config em `firebase.json` (secção `firestore`) + `firestore.indexes.json` (vazio; sem índices compostos) + `.firebaserc` (projeto default `song-pad-app`). **Base de dados Firestore criada** (modo Native, região `southamerica-east1`/São Paulo — permanente) e **regras já deployadas** (`firebase deploy --only firestore:rules`). API Firestore ativada via `gcloud`.
-- **Última branch trabalhada:** `feat/firestore-schema`
-- **Último PR merged:** #15 (`feat/firebase-auth`)
+- **Última branch trabalhada:** `feat/firestore-repositories`
+- **Último PR merged:** #16 (`feat/firestore-schema`)
 
 ### Decisão de arquitectura cloud (sessão 2026-05-29)
 
@@ -112,7 +112,7 @@ Os ficheiros estáticos reais (`/songs`, `/songs/new`, etc.) são servidos antes
 - [x] Validar export estático do Next.js (`output: 'export'`) com as rotas dinâmicas `[id]` a resolver no cliente — confirmar que cabe no plano Spark gratuito ✅ viável (ver "Estado Actual")
 - [x] Configurar Firebase Auth com login Google + ecrã/fluxo de login ✅ `AuthContext` + `AuthGuard` + `/login` + "Sair" em `/settings`. Falta ativar o provedor Google no console.
 - [x] Definir schema Firestore (colecções `songs`, `setlists` por `uid`) + regras de segurança ✅ aninhado em `users/{uid}/...`, `firestore.rules` deployadas, BD criada em `southamerica-east1`
-- [ ] Adaptar `songRepository` e `setlistRepository` para Firestore (sync em tempo real, offline-first)
+- [x] Adaptar `songRepository` e `setlistRepository` para Firestore (sync em tempo real, offline-first) ✅ Firestore fonte única + cache offline; hooks `useSongs`/`useSetlists` (`onSnapshot`) substituem `useLiveQuery`
 - [ ] Rotina de migração dos dados locais (IndexedDB) para o Firestore
 - [ ] Configurar Firebase Hosting + deploy
 
