@@ -36,8 +36,9 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Setlists:** Sim — `SetlistForm` partilhado entre `/setlists/new` e `/setlists/[id]/edit`, com pesquisa de músicas, drag-and-drop (`@dnd-kit`) para reordenar, validação de nome obrigatório e eliminação a partir do form de edição. `SetlistCard` + `SetlistList` para a listagem em `/setlists`. Navegação Songs ↔ Setlists no header de cada página.
 - **Player de setlist:** Sim — `/setlists/[id]` (stage view) com `SetlistPlayer`: uma música de cada vez, navegação Anterior/Seguinte + teclado ←/→ (ignora foco em inputs), indicador "n / total", transposição por música persistida em memória durante a sessão, edge cases (setlist vazia + música órfã). Helpers de tom (`shouldUseFlats`, `safeTransposeKey`) extraídos para `src/lib/keyDisplay.ts` e partilhados com o viewer individual.
 - **Definições e backup:** Sim — `/settings` com export JSON (`buildBackup` + `triggerJsonDownload`, nome `songpad-backup-YYYY-MM-DD.json`) e import (`parseBackup` valida version + schema; `summarizeImport` mostra preview no `window.confirm`; aplicação via `songRepository.upsert` / `setlistRepository.upsert`, merge por id). Link "Definições" no header de `/songs` e `/setlists`. Cobertura em `src/__tests__/backup.test.ts`.
-- **Última branch trabalhada:** `feat/settings-backup`
-- **Último PR merged:** #11 (`feat/settings-backup`)
+- **Export estático validado:** Sim — `next.config.ts` com `output: "export"`. As 4 rotas dinâmicas (`/songs/[id]`, `/songs/[id]/edit`, `/setlists/[id]`, `/setlists/[id]/edit`) foram refactorizadas: cada `page.tsx` é agora um Server Component fino que exporta `generateStaticParams()` (placeholder `{ id: "_" }`) e renderiza um componente client co-localizado (`SongView`, `SongEditor`, `SetlistPlay`, `SetlistEditor`) que lê o `id` em runtime via `useParams()`. O `manifest.ts` levou `export const dynamic = "force-static"`. Build gera `out/songs/_.html`, `out/songs/_/edit.html`, `out/setlists/_.html`, `out/setlists/_/edit.html` como cascas. Validado com Chromium headless servindo `out/` com os rewrites planeados: as rotas `[id]` resolvem no cliente (não dão 404). **Conclusão: viável no plano Spark gratuito.** Ver "Rewrites do Firebase Hosting" abaixo.
+- **Última branch trabalhada:** `chore/validate-static-export`
+- **Último PR merged:** #12 (`docs/cloud-sync-decision`)
 
 ### Decisão de arquitectura cloud (sessão 2026-05-29)
 
@@ -50,6 +51,21 @@ Rumo decidido — **tudo no Firebase, plano gratuito Spark como objectivo**:
 - **Autenticação:** Firebase Auth com **login Google**. Só o utilizador acede aos seus dados (regras de segurança do Firestore por `uid`).
 - **Migração de dados:** a camada de acesso está isolada em `src/repositories/`, por isso a sincronização entra aí. Há que migrar os dados que já existem em IndexedDB local para o Firestore (reaproveitar o `buildBackup`/import existente ou rotina de migração própria).
 - **Custo esperado:** €0/mês à escala de uso pessoal.
+
+### Rewrites do Firebase Hosting (para o passo de deploy)
+
+O export estático gera uma casca por rota dinâmica (`_`). Como os `id`s reais só existem no browser, o Firebase Hosting tem de reescrever cada pedido `/songs/<id>` etc. para a casca correspondente. No `firebase.json` (a criar no passo de deploy), por **ordem** (mais específico primeiro), com `"cleanUrls": true`:
+
+```jsonc
+"rewrites": [
+  { "source": "/songs/*/edit",    "destination": "/songs/_/edit.html" },
+  { "source": "/songs/*",          "destination": "/songs/_.html" },
+  { "source": "/setlists/*/edit",  "destination": "/setlists/_/edit.html" },
+  { "source": "/setlists/*",       "destination": "/setlists/_.html" }
+]
+```
+
+Os ficheiros estáticos reais (`/songs`, `/songs/new`, etc.) são servidos antes dos rewrites, por isso não há colisão. Confirmado com servidor estático local + Chromium headless.
 
 > ⚠️ **Atenção a versões**: o `create-next-app` instalou Next.js 16 (não 14 como previsto originalmente) e Tailwind v4 (não v3). Ambos têm breaking changes face a versões anteriores. Ver `AGENTS.md` na raiz e consultar `node_modules/next/dist/docs/` antes de escrever código.
 
@@ -89,7 +105,7 @@ Rumo decidido — **tudo no Firebase, plano gratuito Spark como objectivo**:
 > Ordem sugerida. A decisão de arquitectura está em "Estado Actual do Projeto".
 
 - [ ] Criar projecto Firebase + configurar app web (chaves em variáveis de ambiente)
-- [ ] Validar export estático do Next.js (`output: 'export'`) com as rotas dinâmicas `[id]` a resolver no cliente — confirmar que cabe no plano Spark gratuito
+- [x] Validar export estático do Next.js (`output: 'export'`) com as rotas dinâmicas `[id]` a resolver no cliente — confirmar que cabe no plano Spark gratuito ✅ viável (ver "Estado Actual")
 - [ ] Configurar Firebase Auth com login Google + ecrã/fluxo de login
 - [ ] Definir schema Firestore (colecções `songs`, `setlists` por `uid`) + regras de segurança
 - [ ] Adaptar `songRepository` e `setlistRepository` para Firestore (sync em tempo real, offline-first)

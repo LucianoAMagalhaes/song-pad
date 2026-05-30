@@ -1,76 +1,11 @@
-"use client";
+import { SetlistPlay } from "./SetlistPlay";
 
-import { use, useEffect, useState } from "react";
-import Link from "next/link";
-import { SetlistPlayer } from "@/components/SetlistPlayer";
-import { LinkButton } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { setlistRepository } from "@/repositories/setlistRepository";
-import type { Setlist } from "@/models/setlist";
-
-interface PlaySetlistPageProps {
-  params: Promise<{ id: string }>;
+// See `/songs/[id]/page.tsx` for why static export needs a placeholder param
+// here; Firebase Hosting rewrites the real `/setlists/<id>` to this shell.
+export function generateStaticParams() {
+  return [{ id: "_" }];
 }
 
-type LoadState =
-  | { status: "loading" }
-  | { status: "not-found" }
-  | { status: "ready"; setlist: Setlist };
-
-export default function PlaySetlistPage({ params }: PlaySetlistPageProps) {
-  const { id } = use(params);
-  const [state, setState] = useState<LoadState>({ status: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    setlistRepository.getById(id).then((setlist) => {
-      if (cancelled) return;
-      setState(setlist ? { status: "ready", setlist } : { status: "not-found" });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
-
-  return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:py-10">
-      <nav className="mb-6">
-        <Link
-          href="/setlists"
-          className="text-sm text-muted hover:text-foreground transition-colors"
-        >
-          ← Voltar às setlists
-        </Link>
-      </nav>
-
-      {state.status === "loading" ? (
-        <div className="text-muted text-sm py-8 text-center">A carregar...</div>
-      ) : state.status === "not-found" ? (
-        <EmptyState
-          title="Setlist não encontrada"
-          description="Esta setlist pode ter sido apagada ou o link está inválido."
-          action={<LinkButton href="/setlists">Voltar às setlists</LinkButton>}
-        />
-      ) : (
-        <>
-          <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-bold text-foreground">{state.setlist.name}</h1>
-              <p className="text-muted text-sm">
-                {state.setlist.songIds.length === 1
-                  ? "1 música"
-                  : `${state.setlist.songIds.length} músicas`}
-              </p>
-            </div>
-
-            <LinkButton href={`/setlists/${state.setlist.id}/edit`} variant="secondary">
-              Editar
-            </LinkButton>
-          </header>
-
-          <SetlistPlayer setlist={state.setlist} />
-        </>
-      )}
-    </main>
-  );
+export default function PlaySetlistPage() {
+  return <SetlistPlay />;
 }

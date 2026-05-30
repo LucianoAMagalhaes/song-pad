@@ -11,6 +11,8 @@ const withSerwist = withSerwistInit({
   disable: isDev,
 });
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  output: "export",
+};
 
 export default withSerwist(nextConfig);

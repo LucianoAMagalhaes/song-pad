@@ -1,5 +1,9 @@
 import type { MetadataRoute } from "next";
 
+// Required for static export (`output: "export"`): the manifest route
+// must be emitted as a static file at build time, not served dynamically.
+export const dynamic = "force-static";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "SongPad",
