@@ -37,8 +37,10 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 - **Player de setlist:** Sim — `/setlists/[id]` (stage view) com `SetlistPlayer`: uma música de cada vez, navegação Anterior/Seguinte + teclado ←/→ (ignora foco em inputs), indicador "n / total", transposição por música persistida em memória durante a sessão, edge cases (setlist vazia + música órfã). Helpers de tom (`shouldUseFlats`, `safeTransposeKey`) extraídos para `src/lib/keyDisplay.ts` e partilhados com o viewer individual.
 - **Definições e backup:** Sim — `/settings` com export JSON (`buildBackup` + `triggerJsonDownload`, nome `songpad-backup-YYYY-MM-DD.json`) e import (`parseBackup` valida version + schema; `summarizeImport` mostra preview no `window.confirm`; aplicação via `songRepository.upsert` / `setlistRepository.upsert`, merge por id). Link "Definições" no header de `/songs` e `/setlists`. Cobertura em `src/__tests__/backup.test.ts`.
 - **Export estático validado:** Sim — `next.config.ts` com `output: "export"`. As 4 rotas dinâmicas (`/songs/[id]`, `/songs/[id]/edit`, `/setlists/[id]`, `/setlists/[id]/edit`) foram refactorizadas: cada `page.tsx` é agora um Server Component fino que exporta `generateStaticParams()` (placeholder `{ id: "_" }`) e renderiza um componente client co-localizado (`SongView`, `SongEditor`, `SetlistPlay`, `SetlistEditor`) que lê o `id` em runtime via `useParams()`. O `manifest.ts` levou `export const dynamic = "force-static"`. Build gera `out/songs/_.html`, `out/songs/_/edit.html`, `out/setlists/_.html`, `out/setlists/_/edit.html` como cascas. Validado com Chromium headless servindo `out/` com os rewrites planeados: as rotas `[id]` resolvem no cliente (não dão 404). **Conclusão: viável no plano Spark gratuito.** Ver "Rewrites do Firebase Hosting" abaixo.
-- **Última branch trabalhada:** `chore/validate-static-export`
-- **Último PR merged:** #12 (`docs/cloud-sync-decision`)
+- **Projecto Firebase criado:** Sim — ID `song-pad-app` (display "SongPad"), conta `lucianoamaro.m@gmail.com`. App web registada (App ID `1:1072999656233:web:bcb930f2c0a94cc8636538`). Consola: https://console.firebase.google.com/project/song-pad-app/overview. URL de hosting prevista: `https://song-pad-app.web.app`.
+- **Config Firebase:** Sim — chaves em `NEXT_PUBLIC_FIREBASE_*` no `.env.local` (fora do Git; template em `.env.example`). SDK `firebase` 12.x instalado. Inicialização singleton em `src/lib/firebase.ts` (`getFirebaseApp()`). Auth e Firestore entram nos passos seguintes.
+- **Última branch trabalhada:** `feat/firebase-setup`
+- **Último PR merged:** #13 (`chore/validate-static-export`)
 
 ### Decisão de arquitectura cloud (sessão 2026-05-29)
 
@@ -104,7 +106,7 @@ Os ficheiros estáticos reais (`/songs`, `/songs/new`, etc.) são servidos antes
 
 > Ordem sugerida. A decisão de arquitectura está em "Estado Actual do Projeto".
 
-- [ ] Criar projecto Firebase + configurar app web (chaves em variáveis de ambiente)
+- [x] Criar projecto Firebase + configurar app web (chaves em variáveis de ambiente) ✅ projecto `song-pad-app`, app web registada, SDK `firebase` 12.x, `src/lib/firebase.ts`
 - [x] Validar export estático do Next.js (`output: 'export'`) com as rotas dinâmicas `[id]` a resolver no cliente — confirmar que cabe no plano Spark gratuito ✅ viável (ver "Estado Actual")
 - [ ] Configurar Firebase Auth com login Google + ecrã/fluxo de login
 - [ ] Definir schema Firestore (colecções `songs`, `setlists` por `uid`) + regras de segurança
