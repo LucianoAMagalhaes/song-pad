@@ -5,14 +5,15 @@ interface ChordDiagramProps {
   name: string;
 }
 
-// Diagram geometry (SVG user units). Compact enough to sit in a horizontal strip.
+// Diagram geometry (SVG user units). Frets are spaced taller than the strings
+// so the neck reads clearly, the way printed chord charts usually look.
 const STRINGS = GUITAR.strings; // 6
 const FRETS = GUITAR.fretsOnChord; // 4
-const STRING_GAP = 12;
-const FRET_GAP = 13;
-const PAD_X = 9;
-const TOP = 16; // room above the nut for open/muted markers
-const DOT_R = 4.5;
+const STRING_GAP = 15;
+const FRET_GAP = 20;
+const PAD_X = 11;
+const TOP = 20; // room above the nut for open/muted markers
+const DOT_R = 5.5;
 
 const width = PAD_X * 2 + (STRINGS - 1) * STRING_GAP;
 const gridBottom = TOP + FRETS * FRET_GAP;
@@ -94,8 +95,8 @@ function Diagram({ name, position }: { name: string; position: ChordPosition }) 
       {!showNut ? (
         <text
           x={stringX(STRINGS - 1) + 5}
-          y={fretY(0) + FRET_GAP - 4}
-          fontSize={8}
+          y={fretY(0) + FRET_GAP - 6}
+          fontSize={9}
           fill="currentColor"
           fillOpacity={0.7}
         >
@@ -130,8 +131,8 @@ function Diagram({ name, position }: { name: string; position: ChordPosition }) 
             <text
               key={`m${i}`}
               x={x}
-              y={TOP - 5}
-              fontSize={9}
+              y={TOP - 6}
+              fontSize={11}
               textAnchor="middle"
               fill="currentColor"
               fillOpacity={0.6}
@@ -145,8 +146,8 @@ function Diagram({ name, position }: { name: string; position: ChordPosition }) 
             <circle
               key={`o${i}`}
               cx={x}
-              cy={TOP - 7}
-              r={3}
+              cy={TOP - 8}
+              r={3.5}
               fill="none"
               stroke="currentColor"
               strokeOpacity={0.6}
@@ -162,8 +163,8 @@ function Diagram({ name, position }: { name: string; position: ChordPosition }) 
             {finger > 0 ? (
               <text
                 x={x}
-                y={cy + 3}
-                fontSize={7}
+                y={cy + 3.5}
+                fontSize={8}
                 textAnchor="middle"
                 fill="var(--background)"
                 fontWeight="bold"
