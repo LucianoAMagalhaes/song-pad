@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useRouteId } from "@/hooks/useRouteId";
 import { ChordRenderer } from "@/components/ChordRenderer";
+import { ChordPanel } from "@/components/ChordPanel";
 import { Transposer } from "@/components/Transposer";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -112,6 +113,8 @@ export function SongView() {
               onChange={setSemitones}
             />
           </div>
+
+          <ChordPanel content={transposedContent} />
 
           <section className="rounded-2xl border border-border bg-surface p-4 sm:p-6 overflow-x-auto">
             {state.song.content.trim() === "" ? (
