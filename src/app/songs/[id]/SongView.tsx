@@ -10,6 +10,7 @@ import { Transposer } from "@/components/Transposer";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { transposeContent } from "@/lib/chordTransposer";
+import { replaceChord } from "@/lib/chordSwap";
 import { safeTransposeKey, shouldUseFlats } from "@/lib/keyDisplay";
 import { songRepository } from "@/repositories/songRepository";
 import type { Song } from "@/models/song";
@@ -55,6 +56,15 @@ export function SongView() {
     () => (song ? safeTransposeKey(song.key, semitones, preferFlats) : ""),
     [song, semitones, preferFlats],
   );
+
+  /** Swap every occurrence of `from` with `to` (original key) and persist. */
+  function handleSwapChord(from: string, to: string) {
+    if (state.status !== "ready") return;
+    const song = state.song;
+    const updated = { ...song, content: replaceChord(song.content, from, to) };
+    setState({ status: "ready", song: updated }); // optimistic
+    void songRepository.update(song.id, { content: updated.content });
+  }
 
   async function handleDelete() {
     if (!song) return;
@@ -114,7 +124,13 @@ export function SongView() {
             />
           </div>
 
-          <ChordPanel content={transposedContent} />
+          <ChordPanel
+            content={transposedContent}
+            originalContent={state.song.content}
+            semitones={semitones}
+            preferFlats={preferFlats}
+            onSwapChord={handleSwapChord}
+          />
 
           <section className="rounded-2xl border border-border bg-surface p-4 sm:p-6 overflow-x-auto">
             {state.song.content.trim() === "" ? (

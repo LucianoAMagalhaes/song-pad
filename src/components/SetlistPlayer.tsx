@@ -7,6 +7,7 @@ import { Transposer } from "@/components/Transposer";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { transposeContent } from "@/lib/chordTransposer";
+import { replaceChord } from "@/lib/chordSwap";
 import { safeTransposeKey, shouldUseFlats } from "@/lib/keyDisplay";
 import { songRepository } from "@/repositories/songRepository";
 import type { Setlist } from "@/models/setlist";
@@ -98,6 +99,14 @@ export function SetlistPlayer({ setlist }: SetlistPlayerProps) {
     setTranspositions((prev) => ({ ...prev, [currentSongId]: next }));
   }
 
+  /** Swap every occurrence of `from` with `to` (original key) and persist. */
+  function handleSwapChord(from: string, to: string) {
+    if (!currentSong) return;
+    const updated = { ...currentSong, content: replaceChord(currentSong.content, from, to) };
+    setSongsById((prev) => new Map(prev).set(updated.id, updated)); // optimistic
+    void songRepository.update(updated.id, { content: updated.content });
+  }
+
   if (total === 0) {
     return (
       <EmptyState
@@ -174,7 +183,13 @@ export function SetlistPlayer({ setlist }: SetlistPlayerProps) {
             />
           </div>
 
-          <ChordPanel content={transposedContent} />
+          <ChordPanel
+            content={transposedContent}
+            originalContent={currentSong.content}
+            semitones={semitones}
+            preferFlats={preferFlats}
+            onSwapChord={handleSwapChord}
+          />
 
           <section className="rounded-2xl border border-border bg-surface p-4 sm:p-6 overflow-x-auto">
             {currentSong.content.trim() === "" ? (
