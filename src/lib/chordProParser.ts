@@ -60,6 +60,25 @@ function parseLine(line: string): Line {
   return { segments };
 }
 
+/**
+ * Collect the unique chords used in a ChordPro string, in order of first
+ * appearance. Useful for rendering a summary panel (e.g. chord diagrams).
+ */
+export function extractChords(content: string): string[] {
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  for (const line of parse(content)) {
+    for (const segment of line.segments) {
+      const chord = segment.chord?.trim();
+      if (chord && !seen.has(chord)) {
+        seen.add(chord);
+        ordered.push(chord);
+      }
+    }
+  }
+  return ordered;
+}
+
 /** Convert a parsed structure back into the original ChordPro string (round-trip safe). */
 export function serialize(lines: Line[]): string {
   return lines.map(serializeLine).join("\n");

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChordRenderer } from "@/components/ChordRenderer";
+import { ChordPanel } from "@/components/ChordPanel";
 import { Transposer } from "@/components/Transposer";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -172,6 +173,8 @@ export function SetlistPlayer({ setlist }: SetlistPlayerProps) {
               onChange={handleTranspose}
             />
           </div>
+
+          <ChordPanel content={transposedContent} />
 
           <section className="rounded-2xl border border-border bg-surface p-4 sm:p-6 overflow-x-auto">
             {currentSong.content.trim() === "" ? (
