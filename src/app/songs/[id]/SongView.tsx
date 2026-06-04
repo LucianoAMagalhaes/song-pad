@@ -136,7 +136,13 @@ export function SongView() {
             {state.song.content.trim() === "" ? (
               <p className="text-muted text-sm italic">Esta música ainda não tem conteúdo.</p>
             ) : (
-              <ChordRenderer content={transposedContent} />
+              <ChordRenderer
+                content={transposedContent}
+                originalContent={state.song.content}
+                semitones={semitones}
+                preferFlats={preferFlats}
+                onSwapChord={handleSwapChord}
+              />
             )}
           </section>
         </article>

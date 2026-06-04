@@ -195,7 +195,13 @@ export function SetlistPlayer({ setlist }: SetlistPlayerProps) {
             {currentSong.content.trim() === "" ? (
               <p className="text-muted text-sm italic">Esta música ainda não tem conteúdo.</p>
             ) : (
-              <ChordRenderer content={transposedContent} />
+              <ChordRenderer
+                content={transposedContent}
+                originalContent={currentSong.content}
+                semitones={semitones}
+                preferFlats={preferFlats}
+                onSwapChord={handleSwapChord}
+              />
             )}
           </section>
         </article>
