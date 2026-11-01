@@ -8,7 +8,7 @@ Alternativa **A — Panorama** escolhida e revista em 2026-11-01:
 
 - Casas 0–24 dispostas num único braço contínuo, sem selecção de regiões. Em desktop, ajusta-se à largura disponível; em mobile, mantém deslocamento horizontal e notas legíveis.
 - Removidos o bloco “Perceber com um exemplo” e o separador “Acordes”.
-- O âmbito do módulo é notas, intervalos e escalas. A primeira entrega abrange notas/intervalos; o conteúdo de escalas tem decisão própria no mapa. Acordes, inversões, arpejos e campos harmónicos foram excluídos do módulo por decisão expressa do utilizador.
+- O âmbito do módulo é notas, intervalos e escalas. O [conteúdo de escalas confirmado](https://github.com/LucianoAMagalhaes/song-pad/issues/32) inclui maior, menor natural e pentatónicas maior/menor em todas as tónicas, com nomes/graus; a integração virá após o planeamento. O protótipo actual cobre notas/intervalos. Acordes, inversões, arpejos e campos harmónicos estão excluídos.
 - A versão escolhida não apresenta a barra de comparação entre alternativas.
 - Visual aprovado: verde/preto do SongPad, com superfícies escuras, verde nos destaques e trastes cinzentos de maior contraste para separar as casas.
 

@@ -23,7 +23,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Protótipo Teoria (sessão 2026-11-01):** branch descartável prototype/guitar-theory; executar com npm run prototype:theory e consultar src/app/theory/prototype/README.md. O utilizador aprovou A contínua 0–24, verde/preto e trastes visíveis. O âmbito actual é notas, intervalos e escalas; acordes, inversões, arpejos e campos harmónicos estão excluídos. Antes de continuar, consultar o [mapa Teoria](https://github.com/LucianoAMagalhaes/song-pad/issues/25). Próxima decisão: [conteúdo de escalas](https://github.com/LucianoAMagalhaes/song-pad/issues/32).
+- **Protótipo Teoria (sessão 2026-11-01):** branch descartável prototype/guitar-theory; executar com npm run prototype:theory e consultar src/app/theory/prototype/README.md. A contínua 0–24, verde/preto e trastes visíveis está aprovada. O âmbito é notas, intervalos e escalas; o conteúdo de escalas foi confirmado no [ticket próprio](https://github.com/LucianoAMagalhaes/song-pad/issues/32) e ainda será integrado após o planeamento. Antes de continuar, consultar o [mapa Teoria](https://github.com/LucianoAMagalhaes/song-pad/issues/25). Próxima decisão: [arquitectura e validação](https://github.com/LucianoAMagalhaes/song-pad/issues/30).
 
 - **Configuração das skills de engenharia (sessão 2026-11-01):** GitHub Issues como tracker, labels de triagem padrão e documentação de domínio num único contexto; configuração em `docs/agents/` e referências na secção `Agent skills`. Próximo passo: usar estas convenções nas tarefas de engenharia; glossário e ADRs serão criados quando houver termos ou decisões a registar.
 
