@@ -8,7 +8,7 @@ Alternativa **A — Panorama** escolhida e revista em 2026-11-01:
 
 - Casas 0–24 dispostas num único braço contínuo, sem selecção de regiões. Em desktop, ajusta-se à largura disponível; em mobile, mantém deslocamento horizontal e notas legíveis.
 - Removidos o bloco “Perceber com um exemplo” e o separador “Acordes”.
-- A primeira entrega abrange notas e intervalos. O estudo de acordes e inversões foi também retirado do âmbito inicial, por escolha expressa do utilizador.
+- O âmbito do módulo é notas, intervalos e escalas. A primeira entrega abrange notas/intervalos; o conteúdo de escalas tem decisão própria no mapa. Acordes, inversões, arpejos e campos harmónicos foram excluídos do módulo por decisão expressa do utilizador.
 - A versão escolhida não apresenta a barra de comparação entre alternativas.
 - Visual aprovado: verde/preto do SongPad, com superfícies escuras, verde nos destaques e trastes cinzentos de maior contraste para separar as casas.
 
@@ -39,7 +39,7 @@ O estado musical é partilhado entre versões para comparar a mesma exploração
 1. Escolher C e localizar as suas ocorrências; seleccionar uma posição para ler o registo.
 2. Comparar A2 na 5.ª corda solta e na 6.ª corda/casa 5.
 3. Comparar E2 e E3 e perceber a diferença de oitava.
-4. Comparar C4 com G3: quarta descendente; distinguir essa leitura da função de quinta de G num acorde de C.
+4. Comparar C4 com G3: quarta descendente; distinguir essa leitura da relação entre nomes de notas sem considerar o registo.
 5. Percorrer as casas 0–24 num braço contínuo em smartphone, tablet e desktop.
 6. Confirmar que os controlos de região, a lista de exemplos e o menu de acordes foram removidos de A.
 
