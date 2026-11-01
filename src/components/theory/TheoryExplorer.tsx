@@ -4,8 +4,10 @@ import { useState } from "react";
 import {
   getIntervalMap,
   getNoteMap,
+  getScaleMap,
   INTERVAL_CHOICES,
   NOTE_CHOICES,
+  SCALE_CHOICES,
   type NotePosition,
 } from "@/lib/theory";
 import { Button } from "@/components/ui/Button";
@@ -19,16 +21,19 @@ function positionLabel({ string, fret }: NotePosition): string {
 
 /** Coordinates exploration using the real, browser-independent music core. */
 export function TheoryExplorer() {
-  const [mode, setMode] = useState<"notes" | "intervals">("notes");
+  const [mode, setMode] = useState<"notes" | "intervals" | "scales">("notes");
   const [reference, setReference] = useState(NOTE_CHOICES[0]);
   const [interval, setInterval] = useState(INTERVAL_CHOICES.find(({ short }) => short === "5J")!);
   const [reading, setReading] = useState("relative");
+  const [family, setFamily] = useState<(typeof SCALE_CHOICES)[number]>(SCALE_CHOICES[0]);
+  const [scaleReading, setScaleReading] = useState<"notes" | "degrees">("notes");
   const [origin, setOrigin] = useState({ string: 2, fret: 1 });
   const [choosingReference, setChoosingReference] = useState(false);
   const [showOtherNotes, setShowOtherNotes] = useState(false);
   const [selection, setSelection] = useState({ string: 2, fret: 1 });
   const relation = getIntervalMap(reference.spelling, interval);
-  const map = mode === "intervals" ? relation : getNoteMap(reference.spelling);
+  const scale = mode === "scales" ? getScaleMap(reference.spelling, family.id) : null;
+  const map = scale ?? (mode === "intervals" ? relation : getNoteMap(reference.spelling));
   const isComparing = mode === "intervals" && reading === "positions";
   const positions = isComparing
     ? map.positions.map((position) => ({
@@ -47,6 +52,8 @@ export function TheoryExplorer() {
     (position) => position.pitch.semitones === selected.pitch.semitones && position !== selected,
   );
   const pitchLabel = `${selected.pitch.name}${selected.pitch.register}`;
+  const selectedScaleNote =
+    scale?.notes.find(({ pitchClass }) => pitchClass === selected.pitch.pitchClass) ?? null;
 
   function selectPosition(position: NotePosition) {
     if (choosingReference) {
@@ -61,12 +68,12 @@ export function TheoryExplorer() {
     <>
       <section aria-labelledby="notes-title" className="mb-8">
         <h2 id="notes-title" className="sr-only">
-          {mode === "notes" ? "Notas" : "Intervalos"}
+          {mode === "notes" ? "Notas" : mode === "intervals" ? "Intervalos" : "Escalas"}
         </h2>
         <div
           role="group"
           aria-label="Modo de exploração"
-          className="mb-5 flex w-fit gap-1 rounded-xl border border-neutral-700 bg-surface p-1"
+          className="mb-5 flex w-fit max-w-full flex-wrap gap-1 rounded-xl border border-neutral-700 bg-surface p-1"
         >
           <Button
             type="button"
@@ -92,12 +99,24 @@ export function TheoryExplorer() {
           >
             <span aria-hidden="true">↔</span> Intervalos
           </Button>
+          <Button
+            type="button"
+            variant={mode === "scales" ? "primary" : "ghost"}
+            aria-pressed={mode === "scales"}
+            onClick={() => {
+              setMode("scales");
+              setChoosingReference(false);
+            }}
+            className="rounded-lg"
+          >
+            <span aria-hidden="true">♮</span> Escalas
+          </Button>
         </div>
         <div className="flex flex-wrap gap-4">
           {!isComparing && (
             <div>
               <label htmlFor="note-reference" className="mb-2 block text-xs text-muted">
-                Nota de referência
+                {mode === "scales" ? "Tónica" : "Nota de referência"}
               </label>
               <select
                 id="note-reference"
@@ -114,6 +133,45 @@ export function TheoryExplorer() {
                 ))}
               </select>
             </div>
+          )}
+          {scale && (
+            <>
+              <div>
+                <label htmlFor="scale-family" className="mb-2 block text-xs text-muted">
+                  Família
+                </label>
+                <select
+                  id="scale-family"
+                  className={styles.select}
+                  value={family.id}
+                  onChange={(event) =>
+                    setFamily(SCALE_CHOICES.find(({ id }) => id === event.target.value)!)
+                  }
+                >
+                  {SCALE_CHOICES.map(({ id, name }) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="scale-reading" className="mb-2 block text-xs text-muted">
+                  Leitura
+                </label>
+                <select
+                  id="scale-reading"
+                  className={styles.select}
+                  value={scaleReading}
+                  onChange={(event) =>
+                    setScaleReading(event.target.value === "degrees" ? "degrees" : "notes")
+                  }
+                >
+                  <option value="notes">Notas</option>
+                  <option value="degrees">Graus</option>
+                </select>
+              </div>
+            </>
           )}
           {mode === "intervals" && (
             <>
@@ -187,20 +245,26 @@ export function TheoryExplorer() {
       <section aria-labelledby="map-title" className={styles.panel}>
         <div className={styles.panelHeading}>
           <h2 id="map-title" className="text-2xl font-bold">
-            {mode === "notes"
-              ? `Encontra ${map.reference.name}`
-              : isComparing
-                ? "De uma posição para outra"
-                : `${map.reference.name} → ${relation.target.name}`}
+            {scale
+              ? `${scale.reference.name} · ${scale.name}`
+              : mode === "notes"
+                ? `Encontra ${map.reference.name}`
+                : isComparing
+                  ? "De uma posição para outra"
+                  : `${map.reference.name} → ${relation.target.name}`}
           </h2>
           <p className="mt-3 text-xs text-muted">
-            {mode === "notes"
-              ? "A mesma classe de altura, em várias posições e oitavas."
-              : isComparing
-                ? choosingReference
-                  ? "Escolhe a referência; depois escolhe o alvo. Com as setas, percorre o braço e confirma com Enter ou Espaço."
-                  : "Escolhe o alvo no braço. A altura real determina a distância e a direcção."
-                : `${interval.name} · ${interval.semitones} semitons na relação.`}
+            {scale
+              ? scale.notes
+                  .map((note) => (scaleReading === "degrees" ? note.degree : note.name))
+                  .join(" · ")
+              : mode === "notes"
+                ? "A mesma classe de altura, em várias posições e oitavas."
+                : isComparing
+                  ? choosingReference
+                    ? "Escolhe a referência; depois escolhe o alvo. Com as setas, percorre o braço e confirma com Enter ou Espaço."
+                    : "Escolhe o alvo no braço. A altura real determina a distância e a direcção."
+                  : `${interval.name} · ${interval.semitones} semitons na relação.`}
           </p>
         </div>
         <Fretboard
@@ -210,6 +274,7 @@ export function TheoryExplorer() {
           onNavigate={choosingReference ? setOrigin : setSelection}
           showOtherNotes={showOtherNotes}
           targetLabel={mode === "intervals" ? (isComparing ? "Alvo" : interval.short) : undefined}
+          scaleReading={scale ? scaleReading : undefined}
         />
         <p id="fretboard-help" className="px-5 pb-4 text-xs leading-6 text-muted">
           1.ª corda aguda em cima · 6.ª corda grave em baixo · Afinação padrão (destro).
@@ -219,8 +284,10 @@ export function TheoryExplorer() {
         </p>
         <div className={styles.legend}>
           <span>
-            <b className={styles.referenceSymbol}>R</b> Referência
+            <b className={styles.referenceSymbol}>{scale ? "T" : "R"}</b>{" "}
+            {scale ? "Tónica" : "Referência"}
           </span>
+          {scale && <span>● Nota da escala · número = grau</span>}
           {mode === "intervals" && (
             <span>
               {isComparing ? "Alvo = posição de chegada" : `${interval.short} = ${interval.name}`}
@@ -241,6 +308,9 @@ export function TheoryExplorer() {
         <div aria-live="polite" aria-atomic="true">
           <p className="mt-5 text-4xl font-bold">{pitchLabel}</p>
           <p className="mt-2 text-sm">{positionLabel(selected)}</p>
+          {scale && !selectedScaleNote && (
+            <p className="mt-5 text-sm">{selected.pitch.name} não pertence à escala escolhida.</p>
+          )}
           {mode === "intervals" && !isComparing && (
             <div className="mt-5 border-l-2 border-accent pl-4 text-sm leading-6">
               <p>
@@ -265,6 +335,24 @@ export function TheoryExplorer() {
               <dt>Registo (oitava)</dt>
               <dd>{selected.pitch.register}</dd>
             </div>
+            {scale && selectedScaleNote && (
+              <>
+                <div>
+                  <dt>Grau</dt>
+                  <dd>
+                    {selectedScaleNote.degree}
+                    {selected.isReference ? " · Tónica" : ""}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Intervalo na fórmula</dt>
+                  <dd>
+                    {selectedScaleNote.interval.name} · {selectedScaleNote.interval.semitones}{" "}
+                    semitons
+                  </dd>
+                </div>
+              </>
+            )}
           </dl>
           {selected.pitch.equivalents.length > 1 && (
             <p className="mt-4 text-sm">

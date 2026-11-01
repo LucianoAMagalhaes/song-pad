@@ -103,6 +103,13 @@
   line-height: 10px;
 }
 
+.scaleMember {
+  border: 1px solid #49835d;
+  background: #163e24;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
 .reference {
   background: var(--accent);
   color: black;
