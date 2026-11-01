@@ -1,55 +1,177 @@
 "use client";
 
 import { useState } from "react";
-import { getNoteMap, NOTE_CHOICES, type NotePosition } from "@/lib/theory";
+import {
+  getIntervalMap,
+  getNoteMap,
+  INTERVAL_CHOICES,
+  NOTE_CHOICES,
+  type NotePosition,
+} from "@/lib/theory";
+import { Button } from "@/components/ui/Button";
 import { Fretboard } from "./Fretboard";
+import { PositionComparison } from "./PositionComparison";
 import styles from "./theory.module.css";
 
 function positionLabel({ string, fret }: NotePosition): string {
   return `${string}.ª corda · casa ${fret}${fret === 0 ? " (solta)" : ""}`;
 }
 
-/** Coordinates note exploration using the real, browser-independent music core. */
+/** Coordinates exploration using the real, browser-independent music core. */
 export function TheoryExplorer() {
+  const [mode, setMode] = useState<"notes" | "intervals">("notes");
   const [reference, setReference] = useState(NOTE_CHOICES[0]);
+  const [interval, setInterval] = useState(INTERVAL_CHOICES.find(({ short }) => short === "5J")!);
+  const [reading, setReading] = useState("relative");
+  const [origin, setOrigin] = useState({ string: 2, fret: 1 });
+  const [choosingReference, setChoosingReference] = useState(false);
   const [showOtherNotes, setShowOtherNotes] = useState(false);
   const [selection, setSelection] = useState({ string: 2, fret: 1 });
-  const map = getNoteMap(reference.spelling);
-  const selected = map.positions.find(
+  const relation = getIntervalMap(reference.spelling, interval);
+  const map = mode === "intervals" ? relation : getNoteMap(reference.spelling);
+  const isComparing = mode === "intervals" && reading === "positions";
+  const positions = isComparing
+    ? map.positions.map((position) => ({
+        ...position,
+        isReference: position.string === origin.string && position.fret === origin.fret,
+        isTarget: position.string === selection.string && position.fret === selection.fret,
+      }))
+    : map.positions;
+  const selected = positions.find(
     ({ string, fret }) => string === selection.string && fret === selection.fret,
   )!;
-  const samePitch = map.positions.filter(
+  const referencePosition = positions.find(
+    ({ string, fret }) => string === origin.string && fret === origin.fret,
+  )!;
+  const samePitch = positions.filter(
     (position) => position.pitch.semitones === selected.pitch.semitones && position !== selected,
   );
   const pitchLabel = `${selected.pitch.name}${selected.pitch.register}`;
 
+  function selectPosition(position: NotePosition) {
+    if (choosingReference) {
+      setOrigin(position);
+      setChoosingReference(false);
+    } else {
+      setSelection(position);
+    }
+  }
+
   return (
     <>
       <section aria-labelledby="notes-title" className="mb-8">
-        <h2
-          id="notes-title"
-          className="mb-5 inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-black"
-        >
-          <span aria-hidden="true">●</span> Notas
+        <h2 id="notes-title" className="sr-only">
+          {mode === "notes" ? "Notas" : "Intervalos"}
         </h2>
-        <div>
-          <label htmlFor="note-reference" className="mb-2 block text-xs text-muted">
-            Nota de referência
-          </label>
-          <select
-            id="note-reference"
-            value={reference.name}
-            onChange={(event) =>
-              setReference(NOTE_CHOICES.find(({ name }) => name === event.target.value)!)
-            }
-            className="h-11 w-full rounded-lg border border-neutral-600 bg-surface px-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-40"
+        <div
+          role="group"
+          aria-label="Modo de exploração"
+          className="mb-5 flex w-fit gap-1 rounded-xl border border-neutral-700 bg-surface p-1"
+        >
+          <Button
+            type="button"
+            variant={mode === "notes" ? "primary" : "ghost"}
+            aria-pressed={mode === "notes"}
+            onClick={() => {
+              setMode("notes");
+              setChoosingReference(false);
+            }}
+            className="rounded-lg"
           >
-            {NOTE_CHOICES.map(({ name }) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
+            <span aria-hidden="true">●</span> Notas
+          </Button>
+          <Button
+            type="button"
+            variant={mode === "intervals" ? "primary" : "ghost"}
+            aria-pressed={mode === "intervals"}
+            onClick={() => {
+              setMode("intervals");
+              setChoosingReference(false);
+            }}
+            className="rounded-lg"
+          >
+            <span aria-hidden="true">↔</span> Intervalos
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          {!isComparing && (
+            <div>
+              <label htmlFor="note-reference" className="mb-2 block text-xs text-muted">
+                Nota de referência
+              </label>
+              <select
+                id="note-reference"
+                value={reference.name}
+                onChange={(event) =>
+                  setReference(NOTE_CHOICES.find(({ name }) => name === event.target.value)!)
+                }
+                className="h-11 w-full rounded-lg border border-neutral-600 bg-surface px-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-40"
+              >
+                {NOTE_CHOICES.map(({ name }) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {mode === "intervals" && (
+            <>
+              <div>
+                <label htmlFor="interval-reading" className="mb-2 block text-xs text-muted">
+                  Leitura
+                </label>
+                <select
+                  id="interval-reading"
+                  className={styles.select}
+                  value={reading}
+                  onChange={(event) => {
+                    setReading(event.target.value);
+                    setChoosingReference(false);
+                  }}
+                >
+                  <option value="relative">Relação com a referência</option>
+                  <option value="positions">Comparar posições</option>
+                </select>
+              </div>
+              {!isComparing && (
+                <div>
+                  <label htmlFor="interval-choice" className="mb-2 block text-xs text-muted">
+                    Intervalo
+                  </label>
+                  <select
+                    id="interval-choice"
+                    className={styles.select}
+                    value={interval.short}
+                    onChange={(event) =>
+                      setInterval(
+                        INTERVAL_CHOICES.find(({ short }) => short === event.target.value)!,
+                      )
+                    }
+                  >
+                    {INTERVAL_CHOICES.map(({ short, name }) => (
+                      <option key={short} value={short}>
+                        {short} · {name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {isComparing && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="self-end"
+                  aria-pressed={choosingReference}
+                  onClick={() => setChoosingReference(!choosingReference)}
+                >
+                  {choosingReference
+                    ? "Escolhe a referência no braço…"
+                    : `Alterar referência · ${referencePosition.pitch.name}${referencePosition.pitch.register}`}
+                </Button>
+              )}
+            </>
+          )}
         </div>
         <label className="mt-3 flex min-h-11 w-fit items-center gap-3 text-xs text-muted">
           <input
@@ -65,17 +187,29 @@ export function TheoryExplorer() {
       <section aria-labelledby="map-title" className={styles.panel}>
         <div className={styles.panelHeading}>
           <h2 id="map-title" className="text-2xl font-bold">
-            Encontra {map.reference.name}
+            {mode === "notes"
+              ? `Encontra ${map.reference.name}`
+              : isComparing
+                ? "De uma posição para outra"
+                : `${map.reference.name} → ${relation.target.name}`}
           </h2>
           <p className="mt-3 text-xs text-muted">
-            A mesma classe de altura, em várias posições e oitavas.
+            {mode === "notes"
+              ? "A mesma classe de altura, em várias posições e oitavas."
+              : isComparing
+                ? choosingReference
+                  ? "Escolhe a referência; depois escolhe o alvo. Com as setas, percorre o braço e confirma com Enter ou Espaço."
+                  : "Escolhe o alvo no braço. A altura real determina a distância e a direcção."
+                : `${interval.name} · ${interval.semitones} semitons na relação.`}
           </p>
         </div>
         <Fretboard
-          positions={map.positions}
-          selected={selected}
-          onSelect={setSelection}
+          positions={positions}
+          selected={choosingReference ? referencePosition : selected}
+          onSelect={selectPosition}
+          onNavigate={choosingReference ? setOrigin : setSelection}
           showOtherNotes={showOtherNotes}
+          targetLabel={mode === "intervals" ? (isComparing ? "Alvo" : interval.short) : undefined}
         />
         <p id="fretboard-help" className="px-5 pb-4 text-xs leading-6 text-muted">
           1.ª corda aguda em cima · 6.ª corda grave em baixo · Afinação padrão (destro).
@@ -87,6 +221,11 @@ export function TheoryExplorer() {
           <span>
             <b className={styles.referenceSymbol}>R</b> Referência
           </span>
+          {mode === "intervals" && (
+            <span>
+              {isComparing ? "Alvo = posição de chegada" : `${interval.short} = ${interval.name}`}
+            </span>
+          )}
           <span>◎ Posição seleccionada</span>
           <span>0 = corda solta · casas 1–24</span>
         </div>
@@ -102,6 +241,21 @@ export function TheoryExplorer() {
         <div aria-live="polite" aria-atomic="true">
           <p className="mt-5 text-4xl font-bold">{pitchLabel}</p>
           <p className="mt-2 text-sm">{positionLabel(selected)}</p>
+          {mode === "intervals" && !isComparing && (
+            <div className="mt-5 border-l-2 border-accent pl-4 text-sm leading-6">
+              <p>
+                {selected.pitch.pitchClass === relation.target.pitchClass
+                  ? `${selected.pitch.name}: ${interval.name} de ${map.reference.name} · ${interval.semitones} semitons na relação.`
+                  : selected.isReference
+                    ? `${selected.pitch.name} é a referência.`
+                    : `${selected.pitch.name} não pertence à relação escolhida.`}
+              </p>
+              <p className="mt-2 text-muted">
+                A relação repete-se entre oitavas. Para medir a distância entre alturas concretas,
+                escolhe “Comparar posições”.
+              </p>
+            </div>
+          )}
           <dl className={styles.pitchDetails}>
             <div>
               <dt>Classe de altura</dt>
@@ -133,6 +287,7 @@ export function TheoryExplorer() {
           </p>
         </div>
       </section>
+      {isComparing && <PositionComparison reference={referencePosition} target={selected} />}
     </>
   );
 }

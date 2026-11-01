@@ -22,6 +22,23 @@ export interface NotePosition {
   isReference: boolean;
 }
 
+export interface SimpleInterval {
+  degree: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  semitones: number;
+}
+
+export interface IntervalPosition extends NotePosition {
+  isTarget: boolean;
+}
+
+export interface IntervalComparison {
+  name: string;
+  direction: "ascending" | "descending" | "same";
+  semitones: number;
+  degree: number | null;
+  isCompound: boolean;
+}
+
 const NATURAL_CLASSES: Record<NoteSpelling["letter"], number> = {
   C: 0,
   D: 2,
@@ -61,6 +78,87 @@ const USUAL_SPELLINGS: readonly (readonly NoteSpelling[])[] = [
   [{ letter: "B", accidental: 0 }],
 ];
 const OPEN_STRING_SEMITONES = [64, 59, 55, 50, 45, 40];
+const LETTERS: readonly NoteSpelling["letter"][] = ["C", "D", "E", "F", "G", "A", "B"];
+const MAJOR_SEMITONES = [0, 2, 4, 5, 7, 9, 11, 12];
+const INTERVAL_NAMES = [
+  "Uníssono",
+  "Segunda",
+  "Terça",
+  "Quarta",
+  "Quinta",
+  "Sexta",
+  "Sétima",
+  "Oitava",
+];
+
+function intervalName(degree: number, semitones: number): string {
+  const difference = semitones - MAJOR_SEMITONES[degree - 1];
+  const perfect = [1, 4, 5, 8].includes(degree);
+  const name = INTERVAL_NAMES[degree - 1];
+  if (difference === 0) return degree === 1 ? name : `${name} ${perfect ? "justa" : "maior"}`;
+  if (!perfect && difference === -1) return `${name} menor`;
+  const alterations = difference > 0 ? difference : -difference - (perfect ? 0 : 1);
+  const quality =
+    degree === 1
+      ? difference > 0
+        ? "aumentado"
+        : "diminuto"
+      : difference > 0
+        ? "aumentada"
+        : "diminuta";
+  const prefix =
+    alterations === 1 ? "" : alterations === 2 ? "duplamente " : `${alterations} vezes `;
+  return `${name} ${prefix}${quality}`;
+}
+
+/** Simple relations retain distinct diatonic functions even at the same distance. */
+export const INTERVAL_CHOICES = (
+  [
+    { short: "1J", degree: 1, semitones: 0 },
+    { short: "2m", degree: 2, semitones: 1 },
+    { short: "2M", degree: 2, semitones: 2 },
+    { short: "3m", degree: 3, semitones: 3 },
+    { short: "3M", degree: 3, semitones: 4 },
+    { short: "4J", degree: 4, semitones: 5 },
+    { short: "4A", degree: 4, semitones: 6 },
+    { short: "5d", degree: 5, semitones: 6 },
+    { short: "5J", degree: 5, semitones: 7 },
+    { short: "6m", degree: 6, semitones: 8 },
+    { short: "6M", degree: 6, semitones: 9 },
+    { short: "7m", degree: 7, semitones: 10 },
+    { short: "7M", degree: 7, semitones: 11 },
+    { short: "8J", degree: 8, semitones: 12 },
+  ] satisfies (SimpleInterval & { short: string })[]
+).map((interval) => ({ ...interval, name: intervalName(interval.degree, interval.semitones) }));
+
+/** Describes the directed distance between concrete pitches, using their written letters. */
+export function describeInterval(from: Pitch, to: Pitch): IntervalComparison {
+  const difference = to.semitones - from.semitones;
+  const semitones = Math.abs(difference);
+  const direction = difference > 0 ? "ascending" : difference < 0 ? "descending" : "same";
+  if (semitones > 12) {
+    return { name: "Mais de uma oitava", direction, semitones, degree: null, isCompound: true };
+  }
+  const fromStep = from.register * 7 + LETTERS.indexOf(from.spelling.letter);
+  const toStep = to.register * 7 + LETTERS.indexOf(to.spelling.letter);
+  const degree = Math.abs(toStep - fromStep) + 1;
+  if (degree > 8) {
+    return {
+      name: "Fora dos intervalos simples",
+      direction,
+      semitones,
+      degree: null,
+      isCompound: true,
+    };
+  }
+  return {
+    name: intervalName(degree, semitones),
+    direction,
+    semitones,
+    degree,
+    isCompound: false,
+  };
+}
 
 function pitchClass(semitones: number): number {
   return ((semitones % 12) + 12) % 12;
@@ -80,6 +178,51 @@ function register(semitones: number, spelling: NoteSpelling): number {
   return (semitones - NATURAL_CLASSES[spelling.letter] - spelling.accidental) / 12 - 1;
 }
 
+function buildPitch(semitones: number, spelling: NoteSpelling): Pitch {
+  const noteClass = pitchClass(semitones);
+  return {
+    spelling: { ...spelling },
+    name: noteName(spelling),
+    register: register(semitones, spelling),
+    semitones,
+    pitchClass: noteClass,
+    equivalents: Array.from(
+      new Set(
+        [...USUAL_SPELLINGS[noteClass], spelling].map(
+          (equivalent) => `${noteName(equivalent)}${register(semitones, equivalent)}`,
+        ),
+      ),
+    ),
+  };
+}
+
+/** Builds a relative map across all registers; this is not a distance between two positions. */
+export function getIntervalMap(reference: NoteSpelling, interval: SimpleInterval) {
+  const map = getNoteMap(reference);
+  const referenceIndex = LETTERS.indexOf(reference.letter);
+  const targetIndex = referenceIndex + interval.degree - 1;
+  const letter = LETTERS[targetIndex % 7];
+  const targetNatural = NATURAL_CLASSES[letter] + Math.floor(targetIndex / 7) * 12;
+  const accidental =
+    NATURAL_CLASSES[reference.letter] + reference.accidental + interval.semitones - targetNatural;
+  const spelling = { letter, accidental };
+  const targetClass = pitchClass(targetNatural + accidental);
+  const positions: IntervalPosition[] = map.positions.map((position) => {
+    const isTarget = position.pitch.pitchClass === targetClass;
+    return {
+      ...position,
+      isTarget,
+      pitch: isTarget ? buildPitch(position.pitch.semitones, spelling) : position.pitch,
+    };
+  });
+  return {
+    ...map,
+    target: { name: noteName(spelling), spelling, pitchClass: targetClass },
+    interval: { ...interval, name: intervalName(interval.degree, interval.semitones) },
+    positions,
+  };
+}
+
 /** Builds the complete 0–24 note map locally, preserving the reference spelling. */
 export function getNoteMap(reference: NoteSpelling = { letter: "C", accidental: 0 }) {
   const referenceClass = pitchClass(NATURAL_CLASSES[reference.letter] + reference.accidental);
@@ -93,20 +236,7 @@ export function getNoteMap(reference: NoteSpelling = { letter: "C", accidental: 
         string: stringIndex + 1,
         fret,
         isReference,
-        pitch: {
-          spelling: { ...spelling },
-          name: noteName(spelling),
-          register: register(semitones, spelling),
-          semitones,
-          pitchClass: noteClass,
-          equivalents: Array.from(
-            new Set(
-              [...USUAL_SPELLINGS[noteClass], spelling].map(
-                (equivalent) => `${noteName(equivalent)}${register(semitones, equivalent)}`,
-              ),
-            ),
-          ),
-        },
+        pitch: buildPitch(semitones, spelling),
       };
     }),
   );
