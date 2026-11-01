@@ -23,7 +23,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Planeamento do módulo Teoria (sessão 2026-11-01):** [mapa concluído](https://github.com/LucianoAMagalhaes/song-pad/issues/25) e [especificação publicada, ready-for-agent](https://github.com/LucianoAMagalhaes/song-pad/issues/35) para notas, intervalos e quatro escalas. Antes de implementar, consultar a especificação. Próximo passo: usar to-tickets para dividir a implementação com dependências. Protótipo A em prototype/guitar-theory; fundamentos musicais em research/guitar-theory-foundations. A produção ainda não implementa o módulo. Vocabulário em GLOSSARY.md.
+- **Planeamento do módulo Teoria (sessão 2026-11-01):** [especificação](https://github.com/LucianoAMagalhaes/song-pad/issues/35) e cinco tickets de implementação publicados com ready-for-agent e dependências nativas: notas → intervalos → escalas → preferências → PWA/offline. Antes de implementar, consultar a especificação e o ticket escolhido. Primeiro disponível: [Explorar notas no braço através da secção Teoria](https://github.com/LucianoAMagalhaes/song-pad/issues/36). Protótipo aprovado em prototype/guitar-theory; fundamentos em research/guitar-theory-foundations. A produção ainda não implementa o módulo. Vocabulário em GLOSSARY.md.
 
 - **Configuração das skills de engenharia (sessão 2026-11-01):** GitHub Issues como tracker, labels de triagem padrão e documentação de domínio num único contexto; configuração em `docs/agents/` e referências na secção `Agent skills`. Próximo passo: usar estas convenções nas tarefas de engenharia; glossário e ADRs serão criados quando houver termos ou decisões a registar.
 
