@@ -13,6 +13,15 @@ Local determinado por uma corda e uma casa, incluindo a corda solta. A nota ness
 **Nota de referência**:
 Nota escolhida como origem para identificar e comparar intervalos.
 
+**Escala**:
+Conjunto de notas organizado por uma estrutura de intervalos, tomado relativamente a uma tónica.
+
+**Tónica**:
+Nota que funciona como centro e dá nome à escala. É a referência para identificar os seus graus.
+
+**Grau**:
+Relação de uma nota com a tónica, identificada por um número diatónico e, quando necessário, por uma alteração. Esta numeração difere da ordem sequencial das notas de uma pentatónica.
+
 **Classe de altura**:
 Identidade de uma nota sem distinguir as suas oitavas. Alturas enarmonicamente equivalentes pertencem à mesma classe no sistema de doze semitons.
 
