@@ -324,6 +324,179 @@
   margin-top: 24px;
   max-width: 680px;
 }
+.prototypeNotice {
+  background: var(--surface);
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+}
+.prototypeNotice span {
+  color: #b3b3b3;
+}
+.appHeader nav span {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.wordmark span {
+  color: var(--accent);
+}
+.panorama .eyebrow,
+.panorama .footerHint {
+  color: #aaa;
+}
+.panorama .headerMark {
+  color: #777;
+}
+.panorama .modeTabs {
+  background: var(--surface);
+  border-color: #383838;
+}
+.panorama .modeTabs button {
+  color: #c4c4c4;
+}
+.panorama .modeTabs button[aria-pressed="true"] {
+  background: var(--accent);
+  color: #08140c;
+}
+.panorama select {
+  background: var(--surface-hover);
+  color: var(--foreground);
+  border-color: #484848;
+}
+.panorama .checkbox {
+  color: #bcbcbc;
+}
+.panorama .checkbox input {
+  accent-color: var(--accent);
+}
+.panorama .boardCard {
+  background: var(--surface);
+  border-color: #484848;
+}
+.panorama .boardHeading p {
+  color: #b3b3b3;
+}
+.panorama .statusPill {
+  color: #c8c8c8;
+  border-color: #484848;
+  background: #1a1a1a;
+}
+.panorama .boardScroll {
+  scrollbar-color: #888 #222;
+}
+.continuousBoard .fretCell {
+  background: #151515;
+  border-right: 2px solid #858585;
+}
+.continuousBoard .fretCell[data-inlay] {
+  background: #1c1c1c;
+}
+.continuousBoard .fretCell[data-open] {
+  background: var(--surface);
+  border-right: 5px solid #c9c9c9;
+}
+.continuousBoard .fretCell::before {
+  background: #888;
+  height: 1px;
+}
+.continuousBoard .fretCell button {
+  background: transparent;
+  color: #999;
+}
+.continuousBoard .fretCell button[data-active] {
+  background: var(--foreground);
+  color: #111111;
+  border-color: #eee;
+}
+.continuousBoard .fretCell button[data-root] {
+  background: var(--accent);
+  color: #07140b;
+  border-color: var(--accent-hover);
+}
+.continuousBoard .fretCell button[data-selected] {
+  outline-color: #fff;
+}
+.continuousBoard .fretCell button:focus-visible {
+  outline-color: #fff;
+}
+.continuousBoard .fretNumber {
+  color: #d0d0d0;
+  font-size: 11px;
+}
+.continuousBoard .boardRow [role="rowheader"] {
+  background: var(--surface);
+}
+.continuousBoard .stringLabel {
+  color: #aaa;
+}
+.continuousBoard .stringLabel strong {
+  color: #eee;
+}
+.panorama .boardCaption {
+  color: #b5b5b5;
+}
+.panorama .boardCaption span {
+  color: #999;
+}
+.panorama .legend {
+  border-color: #484848;
+  color: #c8c8c8;
+}
+.panorama .legendRoot {
+  background: var(--accent);
+  color: #07140b;
+}
+.panorama .legendTone {
+  background: var(--foreground);
+}
+.panorama .inspector {
+  background: var(--surface);
+  border-color: #383838;
+}
+.panorama .selectedPitch > span {
+  color: #ddd;
+}
+.panorama .selectedPitch small {
+  color: #aaa;
+}
+.panorama .insight {
+  border-color: var(--accent);
+}
+.panorama .insight h3 {
+  color: var(--foreground);
+}
+.panorama .insight p,
+.panorama .detailText {
+  color: #bcbcbc;
+}
+.panorama .comparison {
+  background: #292929;
+}
+.panorama .comparison span,
+.panorama .comparison small {
+  color: #bbb;
+}
+.panorama .intervalResult strong {
+  color: var(--accent);
+}
+.panorama .intervalResult span {
+  color: #bbb;
+}
+.panorama .currentState {
+  border-color: #383838;
+}
+.panorama .currentState span,
+.panorama .currentState p {
+  color: #aaa;
+}
+.panorama .referenceButton {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--foreground);
+}
+.panorama .referenceButton[aria-pressed="true"] {
+  background: var(--accent);
+  color: #07140b;
+}
 .boardRow {
   display: grid;
   align-items: center;
