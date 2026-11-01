@@ -1,14 +1,15 @@
 import type { KeyboardEvent } from "react";
-import type { NotePosition } from "@/lib/theory";
+import type { NotePosition, ScaleNote } from "@/lib/theory";
 import styles from "./theory.module.css";
 
 interface FretboardProps {
-  positions: (NotePosition & { isTarget?: boolean })[];
+  positions: (NotePosition & { isTarget?: boolean; scaleNote?: ScaleNote | null })[];
   selected: NotePosition;
   onSelect: (position: NotePosition) => void;
   onNavigate?: (position: NotePosition) => void;
   showOtherNotes: boolean;
   targetLabel?: string;
+  scaleReading?: "notes" | "degrees";
 }
 
 /** A continuous right-handed fretboard with one keyboard entry point. */
@@ -19,6 +20,7 @@ export function Fretboard({
   onNavigate = onSelect,
   showOtherNotes,
   targetLabel,
+  scaleReading,
 }: FretboardProps) {
   function navigate(event: KeyboardEvent<HTMLButtonElement>, position: NotePosition) {
     let { string, fret } = position;
@@ -87,6 +89,31 @@ export function Fretboard({
                 {row.map((position) => {
                   const isSelected =
                     position.string === selected.string && position.fret === selected.fret;
+                  const { scaleNote } = position;
+                  const functions = [
+                    position.isReference ? (scaleReading ? "tónica" : "referência") : "",
+                    position.isTarget ? targetLabel : "",
+                    scaleReading ? (scaleNote ? `grau ${scaleNote.degree}` : "fora da escala") : "",
+                  ].filter(Boolean);
+                  const symbols = [
+                    position.isReference ? (scaleReading ? "T" : "R") : "",
+                    position.isTarget ? targetLabel : "",
+                    scaleReading === "notes" ? scaleNote?.degree : "",
+                  ]
+                    .filter(Boolean)
+                    .join("/");
+                  const showName =
+                    position.isReference ||
+                    position.isTarget ||
+                    scaleNote ||
+                    showOtherNotes ||
+                    isSelected;
+                  const label =
+                    scaleReading === "degrees" && scaleNote
+                      ? scaleNote.degree
+                      : showName
+                        ? position.pitch.name
+                        : "·";
                   return (
                     <td
                       key={position.fret}
@@ -97,7 +124,7 @@ export function Fretboard({
                         type="button"
                         data-string={position.string}
                         data-fret={position.fret}
-                        aria-label={`${position.pitch.name}${position.pitch.register}, ${string}.ª corda, casa ${position.fret}${position.fret === 0 ? ", corda solta" : ""}${position.isReference ? ", referência" : ""}${position.isTarget ? `, ${targetLabel}` : ""}`}
+                        aria-label={`${position.pitch.name}${position.pitch.register}, ${string}.ª corda, casa ${position.fret}${position.fret === 0 ? ", corda solta" : ""}${functions.length ? `, ${functions.join(", ")}` : ""}`}
                         aria-pressed={isSelected}
                         tabIndex={isSelected ? 0 : -1}
                         onClick={() => onSelect(position)}
@@ -106,21 +133,10 @@ export function Fretboard({
                       >
                         <span
                           aria-hidden="true"
-                          className={`${styles.marker} ${position.isTarget ? styles.target : ""} ${position.isReference ? styles.reference : ""} ${isSelected ? styles.selected : ""}`}
+                          className={`${styles.marker} ${position.isTarget ? styles.target : ""} ${position.scaleNote ? styles.scaleMember : ""} ${position.isReference ? styles.reference : ""} ${isSelected ? styles.selected : ""}`}
                         >
-                          {position.isReference || position.isTarget || showOtherNotes || isSelected
-                            ? position.pitch.name
-                            : "·"}
-                          {(position.isReference || position.isTarget) && (
-                            <small>
-                              {[
-                                position.isReference ? "R" : "",
-                                position.isTarget ? targetLabel : "",
-                              ]
-                                .filter(Boolean)
-                                .join("/")}
-                            </small>
-                          )}
+                          {label}
+                          {symbols && <small>{symbols}</small>}
                         </span>
                       </button>
                     </td>

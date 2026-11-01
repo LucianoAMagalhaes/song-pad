@@ -31,6 +31,21 @@ export interface IntervalPosition extends NotePosition {
   isTarget: boolean;
 }
 
+export type ScaleFamily = "major" | "natural-minor" | "major-pentatonic" | "minor-pentatonic";
+
+export interface ScaleNote {
+  name: string;
+  spelling: NoteSpelling;
+  pitchClass: number;
+  degree: string;
+  interval: SimpleInterval & { name: string };
+}
+
+export interface ScalePosition extends NotePosition {
+  /** Null for positions outside the chosen scale. */
+  scaleNote: ScaleNote | null;
+}
+
 export interface IntervalComparison {
   name: string;
   direction: "ascending" | "descending" | "same";
@@ -196,9 +211,7 @@ function buildPitch(semitones: number, spelling: NoteSpelling): Pitch {
   };
 }
 
-/** Builds a relative map across all registers; this is not a distance between two positions. */
-export function getIntervalMap(reference: NoteSpelling, interval: SimpleInterval) {
-  const map = getNoteMap(reference);
+function spellInterval(reference: NoteSpelling, interval: SimpleInterval) {
   const referenceIndex = LETTERS.indexOf(reference.letter);
   const targetIndex = referenceIndex + interval.degree - 1;
   const letter = LETTERS[targetIndex % 7];
@@ -206,18 +219,24 @@ export function getIntervalMap(reference: NoteSpelling, interval: SimpleInterval
   const accidental =
     NATURAL_CLASSES[reference.letter] + reference.accidental + interval.semitones - targetNatural;
   const spelling = { letter, accidental };
-  const targetClass = pitchClass(targetNatural + accidental);
+  return { name: noteName(spelling), spelling, pitchClass: pitchClass(targetNatural + accidental) };
+}
+
+/** Builds a relative map across all registers; this is not a distance between two positions. */
+export function getIntervalMap(reference: NoteSpelling, interval: SimpleInterval) {
+  const map = getNoteMap(reference);
+  const target = spellInterval(reference, interval);
   const positions: IntervalPosition[] = map.positions.map((position) => {
-    const isTarget = position.pitch.pitchClass === targetClass;
+    const isTarget = position.pitch.pitchClass === target.pitchClass;
     return {
       ...position,
       isTarget,
-      pitch: isTarget ? buildPitch(position.pitch.semitones, spelling) : position.pitch,
+      pitch: isTarget ? buildPitch(position.pitch.semitones, target.spelling) : position.pitch,
     };
   });
   return {
     ...map,
-    target: { name: noteName(spelling), spelling, pitchClass: targetClass },
+    target,
     interval: { ...interval, name: intervalName(interval.degree, interval.semitones) },
     positions,
   };
@@ -241,4 +260,85 @@ export function getNoteMap(reference: NoteSpelling = { letter: "C", accidental: 
     }),
   );
   return { reference: { name: noteName(reference), pitchClass: referenceClass }, positions };
+}
+
+/** The four approved scale families, with diatonic rather than sequential degrees. */
+export const SCALE_CHOICES = [
+  {
+    id: "major",
+    name: "Maior",
+    formula: [
+      { degree: 1, semitones: 0 },
+      { degree: 2, semitones: 2 },
+      { degree: 3, semitones: 4 },
+      { degree: 4, semitones: 5 },
+      { degree: 5, semitones: 7 },
+      { degree: 6, semitones: 9 },
+      { degree: 7, semitones: 11 },
+    ],
+  },
+  {
+    id: "natural-minor",
+    name: "Menor natural",
+    formula: [
+      { degree: 1, semitones: 0 },
+      { degree: 2, semitones: 2 },
+      { degree: 3, semitones: 3 },
+      { degree: 4, semitones: 5 },
+      { degree: 5, semitones: 7 },
+      { degree: 6, semitones: 8 },
+      { degree: 7, semitones: 10 },
+    ],
+  },
+  {
+    id: "major-pentatonic",
+    name: "Pentatónica maior",
+    formula: [
+      { degree: 1, semitones: 0 },
+      { degree: 2, semitones: 2 },
+      { degree: 3, semitones: 4 },
+      { degree: 5, semitones: 7 },
+      { degree: 6, semitones: 9 },
+    ],
+  },
+  {
+    id: "minor-pentatonic",
+    name: "Pentatónica menor",
+    formula: [
+      { degree: 1, semitones: 0 },
+      { degree: 3, semitones: 3 },
+      { degree: 4, semitones: 5 },
+      { degree: 5, semitones: 7 },
+      { degree: 7, semitones: 10 },
+    ],
+  },
+] as const satisfies readonly {
+  id: ScaleFamily;
+  name: string;
+  formula: readonly SimpleInterval[];
+}[];
+
+/** Builds scale functions across all registers, reusing contextual interval spelling. */
+export function getScaleMap(tonic: NoteSpelling, family: ScaleFamily) {
+  const map = getNoteMap(tonic);
+  const scale = SCALE_CHOICES.find(({ id }) => id === family)!;
+  const notes: ScaleNote[] = scale.formula.map((interval) => {
+    const target = spellInterval(tonic, interval);
+    const alteration = interval.semitones - MAJOR_SEMITONES[interval.degree - 1];
+    const prefix = alteration < 0 ? "b".repeat(-alteration) : "#".repeat(alteration);
+    return {
+      ...target,
+      degree: `${prefix}${interval.degree}`,
+      interval: { ...interval, name: intervalName(interval.degree, interval.semitones) },
+    };
+  });
+  const positions: ScalePosition[] = map.positions.map((position) => {
+    const scaleNote = notes.find((note) => note.pitchClass === position.pitch.pitchClass) ?? null;
+    return {
+      ...position,
+      scaleNote,
+      pitch: scaleNote ? buildPitch(position.pitch.semitones, scaleNote.spelling) : position.pitch,
+    };
+  });
+  return { ...map, family, name: scale.name, notes, positions };
 }
