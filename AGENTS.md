@@ -23,6 +23,8 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
+- **Planeamento do módulo Teoria (sessão 2026-11-01):** mapa [Planear módulo Teoria para dominar o braço da guitarra e do violão](https://github.com/LucianoAMagalhaes/song-pad/issues/25) criado com tickets de decisão e dependências. Antes de trabalhar neste módulo, consultar o mapa e escolher um ticket disponível segundo o fluxo wayfinder. Próximo passo com o utilizador: [Definir os objectivos e as fases de aprendizagem do módulo Teoria](https://github.com/LucianoAMagalhaes/song-pad/issues/26). Glossário iniciado em `GLOSSARY.md`.
+
 - **Configuração das skills de engenharia (sessão 2026-11-01):** GitHub Issues como tracker, labels de triagem padrão e documentação de domínio num único contexto; configuração em `docs/agents/` e referências na secção `Agent skills`. Próximo passo: usar estas convenções nas tarefas de engenharia; glossário e ADRs serão criados quando houver termos ou decisões a registar.
 
 - **Fase:** MVP (Fase 1) completo. **Fase 3 (cloud) completa** (sessão 2026-05-30): login Google, Firestore (schema + regras + repositórios real-time/offline), migração de dados locais e deploy em https://song-pad-app.web.app. A Fase 2 (pós-MVP) continua adiada por opção do utilizador. Próximos rumos possíveis: itens da Fase 2, ou partilha/bandas e empacotamento Capacitor da Fase 3.
