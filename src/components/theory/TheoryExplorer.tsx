@@ -1,6 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DEFAULT_THEORY_PREFERENCES,
+  loadTheoryPreferences,
+  saveTheoryPreferences,
+  type TheoryPreferences,
+} from "@/lib/theoryPreferences";
 import {
   getIntervalMap,
   getNoteMap,
@@ -21,12 +28,34 @@ function positionLabel({ string, fret }: NotePosition): string {
 
 /** Coordinates exploration using the real, browser-independent music core. */
 export function TheoryExplorer() {
-  const [mode, setMode] = useState<"notes" | "intervals" | "scales">("notes");
-  const [reference, setReference] = useState(NOTE_CHOICES[0]);
+  const { user } = useAuth();
+  // A new account gets a fresh session, including all transient selections.
+  return <TheorySession key={user ? `user:${user.uid}` : "signed-out"} uid={user?.uid ?? null} />;
+}
+
+function TheorySession({ uid }: { uid: string | null }) {
+  const [preferences, setPreferences] = useState<TheoryPreferences>({
+    ...DEFAULT_THEORY_PREFERENCES,
+  });
+  useEffect(() => {
+    if (uid) {
+      // Restore browser storage after mounting, keeping SSR and hydration identical.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPreferences(loadTheoryPreferences(uid));
+    }
+  }, [uid]);
+
+  function updatePreferences(update: Partial<TheoryPreferences>) {
+    const next = { ...preferences, ...update };
+    setPreferences(next);
+    if (uid) saveTheoryPreferences(uid, next);
+  }
+
+  const { mode, reading: scaleReading } = preferences;
+  const reference = NOTE_CHOICES.find(({ name }) => name === preferences.tonic)!;
+  const family = SCALE_CHOICES.find(({ id }) => id === preferences.family)!;
   const [interval, setInterval] = useState(INTERVAL_CHOICES.find(({ short }) => short === "5J")!);
   const [reading, setReading] = useState("relative");
-  const [family, setFamily] = useState<(typeof SCALE_CHOICES)[number]>(SCALE_CHOICES[0]);
-  const [scaleReading, setScaleReading] = useState<"notes" | "degrees">("notes");
   const [origin, setOrigin] = useState({ string: 2, fret: 1 });
   const [choosingReference, setChoosingReference] = useState(false);
   const [showOtherNotes, setShowOtherNotes] = useState(false);
@@ -80,7 +109,7 @@ export function TheoryExplorer() {
             variant={mode === "notes" ? "primary" : "ghost"}
             aria-pressed={mode === "notes"}
             onClick={() => {
-              setMode("notes");
+              updatePreferences({ mode: "notes" });
               setChoosingReference(false);
             }}
             className="rounded-lg"
@@ -92,7 +121,7 @@ export function TheoryExplorer() {
             variant={mode === "intervals" ? "primary" : "ghost"}
             aria-pressed={mode === "intervals"}
             onClick={() => {
-              setMode("intervals");
+              updatePreferences({ mode: "intervals" });
               setChoosingReference(false);
             }}
             className="rounded-lg"
@@ -104,7 +133,7 @@ export function TheoryExplorer() {
             variant={mode === "scales" ? "primary" : "ghost"}
             aria-pressed={mode === "scales"}
             onClick={() => {
-              setMode("scales");
+              updatePreferences({ mode: "scales" });
               setChoosingReference(false);
             }}
             className="rounded-lg"
@@ -121,9 +150,7 @@ export function TheoryExplorer() {
               <select
                 id="note-reference"
                 value={reference.name}
-                onChange={(event) =>
-                  setReference(NOTE_CHOICES.find(({ name }) => name === event.target.value)!)
-                }
+                onChange={(event) => updatePreferences({ tonic: event.target.value })}
                 className="h-11 w-full rounded-lg border border-neutral-600 bg-surface px-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-40"
               >
                 {NOTE_CHOICES.map(({ name }) => (
@@ -145,7 +172,9 @@ export function TheoryExplorer() {
                   className={styles.select}
                   value={family.id}
                   onChange={(event) =>
-                    setFamily(SCALE_CHOICES.find(({ id }) => id === event.target.value)!)
+                    updatePreferences({
+                      family: SCALE_CHOICES.find(({ id }) => id === event.target.value)!.id,
+                    })
                   }
                 >
                   {SCALE_CHOICES.map(({ id, name }) => (
@@ -164,7 +193,9 @@ export function TheoryExplorer() {
                   className={styles.select}
                   value={scaleReading}
                   onChange={(event) =>
-                    setScaleReading(event.target.value === "degrees" ? "degrees" : "notes")
+                    updatePreferences({
+                      reading: event.target.value === "degrees" ? "degrees" : "notes",
+                    })
                   }
                 >
                   <option value="notes">Notas</option>
