@@ -23,7 +23,7 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
-- **Planeamento do módulo Teoria (sessão 2026-11-01):** mapa [Planear módulo Teoria para dominar o braço da guitarra e do violão](https://github.com/LucianoAMagalhaes/song-pad/issues/25) criado com tickets de decisão e dependências. Antes de trabalhar neste módulo, consultar o mapa e escolher um ticket disponível segundo o fluxo wayfinder. Próximo passo com o utilizador: [Definir os objectivos e as fases de aprendizagem do módulo Teoria](https://github.com/LucianoAMagalhaes/song-pad/issues/26). Glossário iniciado em `GLOSSARY.md`.
+- **Planeamento do módulo Teoria (sessão 2026-11-01):** mapa [Planear módulo Teoria para dominar o braço da guitarra e do violão](https://github.com/LucianoAMagalhaes/song-pad/issues/25) com pesquisa e [objectivos/fases de aprendizagem](https://github.com/LucianoAMagalhaes/song-pad/issues/26) concluídos; conteúdo de escalas/arpejos e campos harmónicos promovido a tickets próprios. Antes de trabalhar neste módulo, consultar o mapa e escolher um ticket disponível segundo o fluxo wayfinder. Próximo passo com o utilizador: [Definir as convenções musicais e os limites do braço explorável](https://github.com/LucianoAMagalhaes/song-pad/issues/28). Vocabulário consolidado em `GLOSSARY.md`.
 
 - **Configuração das skills de engenharia (sessão 2026-11-01):** GitHub Issues como tracker, labels de triagem padrão e documentação de domínio num único contexto; configuração em `docs/agents/` e referências na secção `Agent skills`. Próximo passo: usar estas convenções nas tarefas de engenharia; glossário e ADRs serão criados quando houver termos ou decisões a registar.
 
