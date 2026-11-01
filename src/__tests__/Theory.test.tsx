@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TheoryPage from "@/app/theory/page";
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: { uid: "musician" }, loading: false }),
+}));
+beforeEach(() => localStorage.clear());
 
 describe("Teoria — notes", () => {
   it("opens with C in Notes and inspects two positions producing A2", async () => {

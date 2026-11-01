@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TheoryPage from "@/app/theory/page";
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({ user: { uid: "musician" }, loading: false }),
+}));
+beforeEach(() => localStorage.clear());
 
 describe("Teoria — scales with the real core", () => {
   it("updates membership and details when changing family and tonic without moving the selection", async () => {
