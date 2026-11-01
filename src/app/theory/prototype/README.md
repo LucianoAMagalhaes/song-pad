@@ -16,6 +16,8 @@ As três alternativas originais e as respectivas capturas estão preservadas no 
 
 ## Executar
 
+O [mapa de decisões foi concluído](https://github.com/LucianoAMagalhaes/song-pad/issues/25). A [arquitectura aprovada](https://github.com/LucianoAMagalhaes/song-pad/issues/30) define o núcleo musical próprio, preferências locais, integração autenticada e validação. A próxima etapa é consolidar uma especificação; este artefacto permanece uma referência descartável.
+
 Na raiz desta branch, com as dependências do projecto instaladas:
 
 ```sh
