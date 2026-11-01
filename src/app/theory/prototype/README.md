@@ -16,7 +16,7 @@ As três alternativas originais e as respectivas capturas estão preservadas no 
 
 ## Executar
 
-A [especificação consolidada está publicada](https://github.com/LucianoAMagalhaes/song-pad/issues/35), com a label ready-for-agent. Este protótipo é uma referência ligada à especificação; o próximo passo é dividi-la em tickets de implementação.
+A [especificação consolidada está publicada](https://github.com/LucianoAMagalhaes/song-pad/issues/35), com cinco tickets de implementação e dependências. Este protótipo é uma referência ligada à especificação; o primeiro ticket disponível é [Explorar notas no braço através da secção Teoria](https://github.com/LucianoAMagalhaes/song-pad/issues/36).
 
 O [mapa de decisões foi concluído](https://github.com/LucianoAMagalhaes/song-pad/issues/25). A [arquitectura aprovada](https://github.com/LucianoAMagalhaes/song-pad/issues/30) define o núcleo musical próprio, preferências locais, integração autenticada e validação. Este artefacto permanece uma referência descartável.
 
