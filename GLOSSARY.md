@@ -5,7 +5,7 @@ Vocabulário de domínio do songbook e da exploração musical.
 ## Language
 
 **Teoria**:
-Área de consulta e exploração de conceitos musicais aplicados ao braço da guitarra e do violão.
+Área de consulta e exploração de notas, intervalos e escalas no braço da guitarra e do violão.
 
 **Posição no braço**:
 Local determinado por uma corda e uma casa, incluindo a corda solta. A nota nessa posição depende da afinação do instrumento.
