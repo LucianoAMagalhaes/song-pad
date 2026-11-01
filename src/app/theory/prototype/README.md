@@ -10,9 +10,9 @@ Alternativa **A — Panorama** escolhida e revista em 2026-11-01:
 - Removidos o bloco “Perceber com um exemplo” e o separador “Acordes”.
 - A primeira entrega abrange notas e intervalos. O estudo de acordes e inversões foi também retirado do âmbito inicial, por escolha expressa do utilizador.
 - A versão escolhida não apresenta a barra de comparação entre alternativas.
-- Revisão visual em curso: manter o verde/preto do SongPad, com superfícies escuras, verde nos destaques e trastes cinzentos de maior contraste para separar as casas. A tentativa de paleta neutra com destaques dourados foi rejeitada pelo utilizador.
+- Visual aprovado: verde/preto do SongPad, com superfícies escuras, verde nos destaques e trastes cinzentos de maior contraste para separar as casas.
 
-As três alternativas originais e as respectivas capturas estão preservadas no [snapshot inicial](https://github.com/LucianoAMagalhaes/song-pad/tree/df4819f/src/app/theory/prototype). B e C continuam acessíveis nesta branch como comparação histórica e não representam o âmbito inicial actual. A aprovação do visual revisto continua no ticket.
+As três alternativas originais e as respectivas capturas estão preservadas no [snapshot inicial](https://github.com/LucianoAMagalhaes/song-pad/tree/df4819f/src/app/theory/prototype). B e C continuam acessíveis nesta branch como comparação histórica e não representam o âmbito inicial actual. O utilizador aprovou o visual revisto; a resolução está registada no ticket.
 
 ## Executar
 
