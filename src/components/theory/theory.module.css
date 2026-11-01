@@ -1,0 +1,153 @@
+.panel {
+  min-width: 0;
+  border: 1px solid #4b4b4b;
+  border-radius: 20px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.panelHeading {
+  padding: 24px;
+}
+
+.scroll {
+  overflow-x: auto;
+  padding: 0 16px 16px;
+}
+
+.fretboard {
+  width: 100%;
+  min-width: 1176px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.fretboard th {
+  height: 40px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.fretboard .stringLabel {
+  position: sticky;
+  left: -1px;
+  z-index: 1;
+  width: 48px;
+  background: var(--surface);
+  text-align: left;
+}
+
+.fretboard td {
+  padding: 0;
+  border-right: 1px solid #888;
+  box-shadow: inset -1px 0 #888;
+  background: linear-gradient(
+    to bottom,
+    transparent calc(50% - 0.5px),
+    #888 calc(50% - 0.5px),
+    #888 calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+}
+
+.fretboard .openString {
+  border-right-color: #ccc;
+  box-shadow: inset -4px 0 #ccc;
+}
+
+.position {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 56px;
+  cursor: pointer;
+}
+
+.position:focus-visible {
+  outline: 2px dashed white;
+  outline-offset: -3px;
+}
+
+.marker {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 50%;
+  font-size: 11px;
+  line-height: 13px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.marker small {
+  font-size: 8px;
+  line-height: 10px;
+}
+
+.reference {
+  background: var(--accent);
+  color: black;
+  font-weight: 600;
+}
+
+.selected {
+  background: var(--surface);
+  outline: 2px solid white;
+  outline-offset: 3px;
+  color: var(--foreground);
+}
+
+.reference.selected {
+  background: var(--accent);
+  color: black;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  border-top: 1px solid #4b4b4b;
+  padding: 16px 24px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.referenceSymbol {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: black;
+}
+
+.details {
+  max-width: 680px;
+  margin-top: 24px;
+  padding: 24px;
+}
+
+.pitchDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.pitchDetails dt {
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
