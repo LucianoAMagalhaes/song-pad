@@ -307,6 +307,23 @@
 .horizontalBoard {
   width: max-content;
 }
+.continuousBoard {
+  width: 100%;
+  min-width: 1046px;
+}
+.continuousBoard .fretCell button {
+  width: calc(100% - 10px);
+  max-width: 40px;
+  height: auto;
+  aspect-ratio: 1;
+}
+.continuousBoard .fretCell button span {
+  font-size: 10px;
+}
+.selectedDetails {
+  margin-top: 24px;
+  max-width: 680px;
+}
 .boardRow {
   display: grid;
   align-items: center;

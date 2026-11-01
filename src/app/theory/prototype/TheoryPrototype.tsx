@@ -25,8 +25,9 @@ import {
 import styles from "./prototype.module.css";
 
 /** Throwaway state shared only so the three layouts can show the same exploration. */
-function useLab() {
-  const [mode, setMode] = useState<Mode>("notes");
+function useLab(notesAndIntervalsOnly = false) {
+  const [storedMode, setMode] = useState<Mode>("notes");
+  const mode = notesAndIntervalsOnly && storedMode === "chords" ? "notes" : storedMode;
   const [root, setRoot] = useState("C");
   const [qualityIndex, setQualityIndex] = useState(0);
   const [intervalIndex, setIntervalIndex] = useState(8);
@@ -211,11 +212,16 @@ export function TheoryPrototype() {
   const searchParams = useSearchParams();
   const rawVariant = searchParams.get("variant");
   const variant = rawVariant === "B" || rawVariant === "C" ? rawVariant : "A";
-  const lab = useLab();
+  const lab = useLab(variant === "A");
   return (
     <div className={styles.prototype}>
       <div className={styles.prototypeNotice}>
-        PROTÓTIPO DE INTERACÇÃO <span>Três alternativas · exemplos em memória</span>
+        PROTÓTIPO DE INTERACÇÃO{" "}
+        <span>
+          {variant === "A"
+            ? "A revista · notas e intervalos"
+            : "Alternativa original para comparação"}
+        </span>
       </div>
       <header className={styles.appHeader}>
         <Link href="/songs" className={styles.wordmark} prefetch={false}>
@@ -239,7 +245,7 @@ export function TheoryPrototype() {
       ) : (
         <VariantC lab={lab} />
       )}
-      <PrototypeSwitcher variant={variant} />
+      {variant !== "A" && <PrototypeSwitcher variant={variant} />}
     </div>
   );
 }
@@ -254,22 +260,20 @@ export function VariantA({ lab }: LabProps) {
           <p>Encontra uma nota. Descobre as relações à sua volta.</p>
         </div>
         <span className={styles.headerMark} aria-hidden="true">
-          01—24
+          0—24
         </span>
       </div>
-      <Controls lab={lab} />
+      <Controls lab={lab} includeChords={false} />
       <section className={styles.boardCard} aria-label="Explorador panorâmico">
         <BoardHeading lab={lab} />
-        <RegionNav lab={lab} />
-        <Fretboard lab={lab} />
+        <Fretboard lab={lab} continuous />
         <Legend lab={lab} />
       </section>
-      <div className={styles.panoramaDetails}>
+      <div className={styles.selectedDetails}>
         <Inspector lab={lab} />
-        <ExamplePanel lab={lab} />
       </div>
       <p className={styles.footerHint}>
-        Percorre o braço na horizontal. Todas as posições podem ser seleccionadas.
+        Casas 0–24 num braço contínuo. Em ecrãs pequenos, desliza na horizontal.
       </p>
     </main>
   );
@@ -363,11 +367,13 @@ export function VariantC({ lab }: LabProps) {
   );
 }
 
-function Controls({ lab }: LabProps) {
+function Controls({ lab, includeChords = true }: LabProps & { includeChords?: boolean }) {
   return (
     <section className={styles.controls} aria-label="Controlos de exploração">
       <div className={styles.modeTabs} role="group" aria-label="Modo de exploração">
-        {(["notes", "intervals", "chords"] as Mode[]).map((mode, i) => (
+        {(
+          (includeChords ? ["notes", "intervals", "chords"] : ["notes", "intervals"]) as Mode[]
+        ).map((mode, i) => (
           <button
             key={mode}
             type="button"
@@ -423,7 +429,7 @@ function Controls({ lab }: LabProps) {
             >
               {INTERVALS.slice(0, -1).map((item, i) => (
                 <option key={item.short} value={i}>
-                  {item.short} · {i === 0 ? "Fundamental" : item.name}
+                  {item.short} · {i === 0 ? "Referência" : item.name}
                 </option>
               ))}
             </select>
@@ -526,7 +532,7 @@ function BoardHeading({ lab }: LabProps) {
           ? "Notas constituintes · " + lab.tones.map((t) => t.name).join(" · ")
           : lab.isComparing
             ? "A altura real determina a distância e a direcção."
-            : (lab.intervalIndex === 0 ? "Fundamental" : lab.interval.name) +
+            : (lab.intervalIndex === 0 ? "Referência" : lab.interval.name) +
               " · " +
               lab.interval.semitones +
               " semitons";
@@ -572,7 +578,8 @@ function Fretboard({
   lab,
   vertical = false,
   compact = false,
-}: LabProps & { vertical?: boolean; compact?: boolean }) {
+  continuous = false,
+}: LabProps & { vertical?: boolean; compact?: boolean; continuous?: boolean }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const visibleFrets =
@@ -583,9 +590,9 @@ function Fretboard({
   const hasSelected = visibleFrets.includes(lab.selected.fret);
 
   useEffect(() => {
-    if (!vertical && !compact)
+    if (!vertical && !compact && !continuous)
       scrollRef.current?.scrollTo({ left: lab.region * 64, behavior: "smooth" });
-  }, [lab.region, vertical, compact]);
+  }, [lab.region, vertical, compact, continuous]);
 
   function onGridKey(event: KeyboardEvent<HTMLDivElement>) {
     if (!(event.target instanceof HTMLButtonElement)) return;
@@ -665,7 +672,9 @@ function Fretboard({
           onClick={() => lab.choose(position)}
         >
           <span>{info.active || info.isSelected || lab.showAll ? info.name : "·"}</span>
-          {info.active && info.role && <small>{info.role === "1" ? "F" : info.role}</small>}
+          {info.active && info.role && (
+            <small>{info.role === "1" ? (lab.mode === "chords" ? "F" : "R") : info.role}</small>
+          )}
         </button>
       </div>
     );
@@ -674,7 +683,9 @@ function Fretboard({
   const gridStyle: CSSProperties = {
     gridTemplateColumns: vertical
       ? "34px repeat(6, minmax(40px, 1fr))"
-      : "46px repeat(" + visibleFrets.length + ", 64px)",
+      : continuous
+        ? "46px repeat(25, minmax(40px, 1fr))"
+        : "46px repeat(" + visibleFrets.length + ", 64px)",
   };
   return (
     <>
@@ -686,7 +697,13 @@ function Fretboard({
       )}
       <div className={styles.boardScroll} ref={scrollRef}>
         <div
-          className={vertical ? styles.verticalBoard : styles.horizontalBoard}
+          className={
+            vertical
+              ? styles.verticalBoard
+              : continuous
+                ? styles.continuousBoard
+                : styles.horizontalBoard
+          }
           ref={gridRef}
           role="grid"
           aria-label={vertical ? "Braço vertical, seis cordas" : "Braço horizontal, seis cordas"}
@@ -741,8 +758,8 @@ function Legend({ lab }: LabProps) {
   return (
     <div className={styles.legend}>
       <span>
-        <i className={styles.legendRoot}>F</i>
-        {lab.isComparing ? "Referência" : "Fundamental / referência"}
+        <i className={styles.legendRoot}>{lab.mode === "chords" ? "F" : "R"}</i>
+        {lab.mode === "chords" ? "Fundamental" : "Referência"}
       </span>
       <span>
         <i className={styles.legendTone}>3</i>
@@ -820,7 +837,7 @@ function Inspector({ lab }: LabProps) {
               ? "A altura é igual, mesmo que a posição no braço mude."
               : lab.comparison.distance > 12
                 ? "A distância ultrapassa uma oitava. Os nomes dos intervalos compostos entram numa fase posterior."
-                : "Esta leitura compara alturas concretas. Não confunde uma nota abaixo da referência com a sua relação harmónica num acorde."}
+                : "Esta leitura compara as alturas reais das posições seleccionadas, com direcção e distância em semitons."}
           </p>
         </>
       )}
@@ -828,7 +845,7 @@ function Inspector({ lab }: LabProps) {
         <div className={styles.insight}>
           <h3>
             {spellInterval(lab.root, lab.interval.semitones, lab.interval.degree)} é{" "}
-            {lab.intervalIndex === 0 ? "a fundamental" : lab.interval.name.toLowerCase()} de{" "}
+            {lab.intervalIndex === 0 ? "a referência" : lab.interval.name.toLowerCase()} de{" "}
             {lab.root}.
           </h3>
           <p>
@@ -889,7 +906,7 @@ function Inspector({ lab }: LabProps) {
             : lab.isComparing
               ? "comparação entre posições"
               : "referência " + lab.root}{" "}
-          · região {lab.region}–{lab.region + 6}
+          · casas 0–24
         </p>
       </div>
     </section>

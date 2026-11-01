@@ -23,6 +23,8 @@ Em cada funcionalidade ou decisão técnica, seguir sempre esta ordem:
 
 > Actualizar esta secção a cada sessão de trabalho.
 
+- **Protótipo Teoria (sessão 2026-11-01):** branch descartável prototype/guitar-theory; executar com npm run prototype:theory e consultar src/app/theory/prototype/README.md. O utilizador escolheu A, com braço contínuo 0–24, sem bloco de exemplos nem menu de acordes; acordes/inversões foram retirados da primeira entrega. Antes de continuar o módulo, consultar o [mapa Teoria](https://github.com/LucianoAMagalhaes/song-pad/issues/25) e a resolução de [Escolher a interacção visual para explorar notas e acordes no braço](https://github.com/LucianoAMagalhaes/song-pad/issues/29). Próxima decisão: [introdução posterior de acordes e inversões](https://github.com/LucianoAMagalhaes/song-pad/issues/34).
+
 - **Configuração das skills de engenharia (sessão 2026-11-01):** GitHub Issues como tracker, labels de triagem padrão e documentação de domínio num único contexto; configuração em `docs/agents/` e referências na secção `Agent skills`. Próximo passo: usar estas convenções nas tarefas de engenharia; glossário e ADRs serão criados quando houver termos ou decisões a registar.
 
 - **Fase:** MVP (Fase 1) completo. **Fase 3 (cloud) completa** (sessão 2026-05-30): login Google, Firestore (schema + regras + repositórios real-time/offline), migração de dados locais e deploy em https://song-pad-app.web.app. A Fase 2 (pós-MVP) continua adiada por opção do utilizador. Próximos rumos possíveis: itens da Fase 2, ou partilha/bandas e empacotamento Capacitor da Fase 3.
