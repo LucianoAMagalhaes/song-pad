@@ -1,5 +1,192 @@
 import { describe, expect, it } from "vitest";
-import { getNoteMap, NOTE_CHOICES, type NoteSpelling } from "@/lib/theory";
+import {
+  describeInterval,
+  getIntervalMap,
+  getNoteMap,
+  INTERVAL_CHOICES,
+  NOTE_CHOICES,
+  type NoteSpelling,
+} from "@/lib/theory";
+
+describe("relative intervals", () => {
+  it.each([
+    ["1J", "C", "Uníssono", 0],
+    ["2m", "Db", "Segunda menor", 1],
+    ["2M", "D", "Segunda maior", 2],
+    ["3m", "Eb", "Terça menor", 3],
+    ["3M", "E", "Terça maior", 4],
+    ["4J", "F", "Quarta justa", 5],
+    ["4A", "F#", "Quarta aumentada", 6],
+    ["5d", "Gb", "Quinta diminuta", 6],
+    ["5J", "G", "Quinta justa", 7],
+    ["6m", "Ab", "Sexta menor", 8],
+    ["6M", "A", "Sexta maior", 9],
+    ["7m", "Bb", "Sétima menor", 10],
+    ["7M", "B", "Sétima maior", 11],
+    ["8J", "C", "Oitava justa", 12],
+  ])("maps %s from C across the full fretboard", (short, name, intervalName, semitones) => {
+    const map = getIntervalMap(
+      { letter: "C", accidental: 0 },
+      INTERVAL_CHOICES.find((choice) => choice.short === short)!,
+    );
+    expect(map.positions).toHaveLength(150);
+    expect(map.interval).toMatchObject({ name: intervalName, semitones });
+    expect(map.target.name).toBe(name);
+    const targets = map.positions.filter(({ isTarget }) => isTarget);
+    expect(targets.length).toBeGreaterThanOrEqual(12);
+    expect(targets.every(({ pitch }) => pitch.name === name)).toBe(true);
+    expect(new Set(targets.map(({ pitch }) => pitch.register)).size).toBeGreaterThanOrEqual(4);
+    if (short === "1J" || short === "8J") {
+      expect(targets.every(({ isReference }) => isReference)).toBe(true);
+      expect(targets.find(({ string, fret }) => string === 2 && fret === 1)!.pitch.register).toBe(
+        4,
+      );
+    }
+  });
+
+  it.each([
+    ["C#", "3M", "E#", 4, 65, { letter: "E", accidental: 1 }],
+    ["D#", "3M", "F##", 4, 67, { letter: "F", accidental: 2 }],
+    ["G#", "3M", "B#", 3, 60, { letter: "B", accidental: 1 }],
+    ["Db", "7m", "Cb", 4, 59, { letter: "C", accidental: -1 }],
+  ] as const)(
+    "preserves contextual spelling and register from %s via %s",
+    (root, short, name, register, semitones, spelling) => {
+      const map = getIntervalMap(
+        NOTE_CHOICES.find((choice) => choice.name === root)!.spelling,
+        INTERVAL_CHOICES.find((choice) => choice.short === short)!,
+      );
+      const target = map.positions.find(({ pitch }) => pitch.semitones === semitones)!;
+      expect(target.pitch).toMatchObject({ name, register, semitones, spelling });
+      expect(target.isTarget).toBe(true);
+    },
+  );
+
+  it("spells the augmented fourth and diminished fifth separately at the same positions", () => {
+    const augmented = getIntervalMap(
+      { letter: "C", accidental: 0 },
+      INTERVAL_CHOICES.find(({ short }) => short === "4A")!,
+    );
+    const diminished = getIntervalMap(
+      { letter: "C", accidental: 0 },
+      INTERVAL_CHOICES.find(({ short }) => short === "5d")!,
+    );
+    expect(augmented.target).toEqual({
+      name: "F#",
+      spelling: { letter: "F", accidental: 1 },
+      pitchClass: 6,
+    });
+    expect(diminished.target).toEqual({
+      name: "Gb",
+      spelling: { letter: "G", accidental: -1 },
+      pitchClass: 6,
+    });
+    const sharp = augmented.positions.find(({ string, fret }) => string === 1 && fret === 2)!;
+    const flat = diminished.positions.find(({ string, fret }) => string === 1 && fret === 2)!;
+    expect(sharp).toMatchObject({
+      isTarget: true,
+      isReference: false,
+      pitch: { name: "F#", register: 4, semitones: 66 },
+    });
+    expect(flat).toMatchObject({
+      isTarget: true,
+      isReference: false,
+      pitch: { name: "Gb", register: 4, semitones: 66 },
+    });
+    const c4 = augmented.positions.find(({ string, fret }) => string === 2 && fret === 1)!.pitch;
+    expect(describeInterval(c4, sharp.pitch)).toMatchObject({
+      name: "Quarta aumentada",
+      semitones: 6,
+      degree: 4,
+    });
+    expect(describeInterval(c4, flat.pitch)).toMatchObject({
+      name: "Quinta diminuta",
+      semitones: 6,
+      degree: 5,
+    });
+    expect(
+      augmented.positions
+        .filter(({ isTarget }) => isTarget)
+        .map(({ string, fret }) => [string, fret]),
+    ).toEqual(
+      diminished.positions
+        .filter(({ isTarget }) => isTarget)
+        .map(({ string, fret }) => [string, fret]),
+    );
+  });
+});
+
+describe("intervals between concrete pitches", () => {
+  it("keeps a written compound interval generic even when its chromatic distance is below twelve", () => {
+    const map = getIntervalMap(
+      { letter: "D", accidental: -1 },
+      INTERVAL_CHOICES.find(({ short }) => short === "2m")!,
+    );
+    const from = map.positions.find(({ pitch }) => pitch.semitones === 74)!.pitch;
+    const to = map.positions.find(({ pitch }) => pitch.semitones === 63)!.pitch;
+    expect(from).toMatchObject({ name: "Ebb", register: 5 });
+    expect(to).toMatchObject({ name: "D#", register: 4 });
+    expect(describeInterval(from, to)).toEqual({
+      name: "Fora dos intervalos simples",
+      direction: "descending",
+      semitones: 11,
+      degree: null,
+      isCompound: true,
+    });
+  });
+  it("recognizes unison at different positions, octaves, and distances beyond an octave", () => {
+    const positions = getNoteMap().positions;
+    const at = (stringNumber: number, fretNumber: number) =>
+      positions.find(({ string, fret }) => string === stringNumber && fret === fretNumber)!.pitch;
+    expect(describeInterval(at(5, 0), at(6, 5))).toEqual({
+      name: "Uníssono",
+      direction: "same",
+      semitones: 0,
+      degree: 1,
+      isCompound: false,
+    });
+    expect(describeInterval(at(6, 0), at(6, 12))).toEqual({
+      name: "Oitava justa",
+      direction: "ascending",
+      semitones: 12,
+      degree: 8,
+      isCompound: false,
+    });
+    expect(describeInterval(at(5, 3), at(1, 0))).toEqual({
+      name: "Mais de uma oitava",
+      direction: "ascending",
+      semitones: 16,
+      degree: null,
+      isCompound: true,
+    });
+    expect(describeInterval(at(1, 0), at(5, 3))).toMatchObject({
+      name: "Mais de uma oitava",
+      direction: "descending",
+      semitones: 16,
+      isCompound: true,
+    });
+  });
+  it("distinguishes an ascending fifth from a descending fourth starting at C4", () => {
+    const positions = getNoteMap().positions;
+    const c4 = positions.find(({ string, fret }) => string === 2 && fret === 1)!.pitch;
+    const g4 = positions.find(({ string, fret }) => string === 1 && fret === 3)!.pitch;
+    const g3 = positions.find(({ string, fret }) => string === 3 && fret === 0)!.pitch;
+    expect(describeInterval(c4, g4)).toEqual({
+      name: "Quinta justa",
+      direction: "ascending",
+      semitones: 7,
+      degree: 5,
+      isCompound: false,
+    });
+    expect(describeInterval(c4, g3)).toEqual({
+      name: "Quarta justa",
+      direction: "descending",
+      semitones: 5,
+      degree: 4,
+      isCompound: false,
+    });
+  });
+});
 
 describe("note map", () => {
   it("covers all six standard strings from open through frets 12 and 24", () => {

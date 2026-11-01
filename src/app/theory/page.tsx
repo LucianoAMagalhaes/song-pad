@@ -21,7 +21,7 @@ export default function TheoryPage() {
         </p>
         <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">O braço, por inteiro.</h1>
         <p className="mt-4 text-sm text-muted">
-          Encontra uma nota. Explora as suas posições no braço.
+          Encontra notas e explora relações entre posições no braço.
         </p>
       </header>
       <TheoryExplorer />
