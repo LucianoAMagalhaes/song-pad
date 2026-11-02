@@ -80,6 +80,8 @@ describe("Teoria — scales with the real core", () => {
     screen.getByRole("button", { name: "Escalas" }).focus();
     await user.keyboard("{Enter}");
     await user.tab();
+    expect(screen.getByRole("button", { name: "Modos Gregos" })).toHaveFocus();
+    await user.tab();
     expect(screen.getByLabelText("Tónica")).toHaveFocus();
     await user.selectOptions(screen.getByLabelText("Tónica"), "C");
     await user.tab();

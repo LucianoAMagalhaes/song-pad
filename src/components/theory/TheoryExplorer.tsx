@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
+  DEFAULT_GREEK_MODE_PREFERENCES,
+  loadGreekModePreferences,
+  saveGreekModePreferences,
+  type GreekModePreferences,
+} from "@/lib/greekModePreferences";
+import {
   DEFAULT_THEORY_PREFERENCES,
   loadTheoryPreferences,
   saveTheoryPreferences,
@@ -12,6 +18,8 @@ import {
   getIntervalMap,
   getNoteMap,
   getScaleMap,
+  getModeMap,
+  parseNoteSpelling,
   INTERVAL_CHOICES,
   NOTE_CHOICES,
   SCALE_CHOICES,
@@ -20,6 +28,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Fretboard } from "./Fretboard";
 import { PositionComparison } from "./PositionComparison";
+import { GreekModeControls, GreekModeComparison } from "./GreekModes";
 import styles from "./theory.module.css";
 
 function positionLabel({ string, fret }: NotePosition): string {
@@ -37,11 +46,15 @@ function TheorySession({ uid }: { uid: string | null }) {
   const [preferences, setPreferences] = useState<TheoryPreferences>({
     ...DEFAULT_THEORY_PREFERENCES,
   });
+  const [greekPreferences, setGreekPreferences] = useState<GreekModePreferences>({
+    ...DEFAULT_GREEK_MODE_PREFERENCES,
+  });
   useEffect(() => {
     if (uid) {
       // Restore browser storage after mounting, keeping SSR and hydration identical.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreferences(loadTheoryPreferences(uid));
+      setGreekPreferences(loadGreekModePreferences(uid));
     }
   }, [uid]);
 
@@ -51,7 +64,15 @@ function TheorySession({ uid }: { uid: string | null }) {
     if (uid) saveTheoryPreferences(uid, next);
   }
 
-  const { mode, reading: scaleReading } = preferences;
+  function updateGreekPreferences(update: Partial<GreekModePreferences>) {
+    const next = { ...greekPreferences, ...update };
+    setGreekPreferences(next);
+    if (uid) saveGreekModePreferences(uid, next);
+  }
+
+  const { mode } = preferences;
+  const isGreekMode = mode === "greek-modes";
+  const scaleReading = isGreekMode ? greekPreferences.reading : preferences.reading;
   const reference = NOTE_CHOICES.find(({ name }) => name === preferences.tonic)!;
   const family = SCALE_CHOICES.find(({ id }) => id === preferences.family)!;
   const [interval, setInterval] = useState(INTERVAL_CHOICES.find(({ short }) => short === "5J")!);
@@ -61,7 +82,11 @@ function TheorySession({ uid }: { uid: string | null }) {
   const [showOtherNotes, setShowOtherNotes] = useState(false);
   const [selection, setSelection] = useState({ string: 2, fret: 1 });
   const relation = getIntervalMap(reference.spelling, interval);
-  const scale = mode === "scales" ? getScaleMap(reference.spelling, family.id) : null;
+  const scale = isGreekMode
+    ? getModeMap(parseNoteSpelling(greekPreferences.tonic)!, greekPreferences.musicalMode)
+    : mode === "scales"
+      ? getScaleMap(reference.spelling, family.id)
+      : null;
   const map = scale ?? (mode === "intervals" ? relation : getNoteMap(reference.spelling));
   const isComparing = mode === "intervals" && reading === "positions";
   const positions = isComparing
@@ -97,7 +122,13 @@ function TheorySession({ uid }: { uid: string | null }) {
     <>
       <section aria-labelledby="notes-title" className="mb-8">
         <h2 id="notes-title" className="sr-only">
-          {mode === "notes" ? "Notas" : mode === "intervals" ? "Intervalos" : "Escalas"}
+          {isGreekMode
+            ? "Modos Gregos"
+            : mode === "notes"
+              ? "Notas"
+              : mode === "intervals"
+                ? "Intervalos"
+                : "Escalas"}
         </h2>
         <div
           role="group"
@@ -140,9 +171,24 @@ function TheorySession({ uid }: { uid: string | null }) {
           >
             <span aria-hidden="true">♮</span> Escalas
           </Button>
+          <Button
+            type="button"
+            variant={isGreekMode ? "primary" : "ghost"}
+            aria-pressed={isGreekMode}
+            onClick={() => {
+              updatePreferences({ mode: "greek-modes" });
+              setChoosingReference(false);
+            }}
+            className="rounded-lg"
+          >
+            Modos Gregos
+          </Button>
         </div>
+        {isGreekMode && (
+          <GreekModeControls preferences={greekPreferences} onChange={updateGreekPreferences} />
+        )}
         <div className="flex flex-wrap gap-4">
-          {!isComparing && (
+          {!isComparing && !isGreekMode && (
             <div>
               <label htmlFor="note-reference" className="mb-2 block text-xs text-muted">
                 {mode === "scales" ? "Tónica" : "Nota de referência"}
@@ -161,7 +207,7 @@ function TheorySession({ uid }: { uid: string | null }) {
               </select>
             </div>
           )}
-          {scale && (
+          {mode === "scales" && (
             <>
               <div>
                 <label htmlFor="scale-family" className="mb-2 block text-xs text-muted">
@@ -284,19 +330,32 @@ function TheorySession({ uid }: { uid: string | null }) {
                   ? "De uma posição para outra"
                   : `${map.reference.name} → ${relation.target.name}`}
           </h2>
-          <p className="mt-3 text-xs text-muted">
-            {scale
-              ? scale.notes
-                  .map((note) => (scaleReading === "degrees" ? note.degree : note.name))
-                  .join(" · ")
-              : mode === "notes"
-                ? "A mesma classe de altura, em várias posições e oitavas."
-                : isComparing
-                  ? choosingReference
-                    ? "Escolhe a referência; depois escolhe o alvo. Com as setas, percorre o braço e confirma com Enter ou Espaço."
-                    : "Escolhe o alvo no braço. A altura real determina a distância e a direcção."
-                  : `${interval.name} · ${interval.semitones} semitons na relação.`}
-          </p>
+          {isGreekMode && scale ? (
+            <dl className="mt-3 space-y-2 text-sm" aria-live="polite" aria-atomic="true">
+              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                <dt className="text-muted">Notas</dt>
+                <dd>{scale.notes.map((note) => note.name).join(" · ")}</dd>
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                <dt className="text-muted">Fórmula em graus</dt>
+                <dd>{scale.notes.map((note) => note.degree).join(" · ")}</dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="mt-3 text-xs text-muted">
+              {scale
+                ? scale.notes
+                    .map((note) => (scaleReading === "degrees" ? note.degree : note.name))
+                    .join(" · ")
+                : mode === "notes"
+                  ? "A mesma classe de altura, em várias posições e oitavas."
+                  : isComparing
+                    ? choosingReference
+                      ? "Escolhe a referência; depois escolhe o alvo. Com as setas, percorre o braço e confirma com Enter ou Espaço."
+                      : "Escolhe o alvo no braço. A altura real determina a distância e a direcção."
+                    : `${interval.name} · ${interval.semitones} semitons na relação.`}
+            </p>
+          )}
         </div>
         <Fretboard
           positions={positions}
@@ -407,6 +466,9 @@ function TheorySession({ uid }: { uid: string | null }) {
         </div>
       </section>
       {isComparing && <PositionComparison reference={referencePosition} target={selected} />}
+      {isGreekMode && (
+        <GreekModeComparison preferences={greekPreferences} onChange={updateGreekPreferences} />
+      )}
     </>
   );
 }

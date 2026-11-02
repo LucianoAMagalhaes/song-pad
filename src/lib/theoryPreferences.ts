@@ -1,7 +1,7 @@
 import { NOTE_CHOICES, SCALE_CHOICES, type ScaleFamily } from "./theory";
 
 export interface TheoryPreferences {
-  mode: "notes" | "intervals" | "scales";
+  mode: "notes" | "intervals" | "scales" | "greek-modes";
   tonic: string;
   family: ScaleFamily;
   reading: "notes" | "degrees";
@@ -25,7 +25,10 @@ export function loadTheoryPreferences(uid: string): TheoryPreferences {
       const family = SCALE_CHOICES.find(({ id }) => id === stored.family);
       if (
         stored.version === 1 &&
-        (stored.mode === "notes" || stored.mode === "intervals" || stored.mode === "scales") &&
+        (stored.mode === "notes" ||
+          stored.mode === "intervals" ||
+          stored.mode === "scales" ||
+          stored.mode === "greek-modes") &&
         tonic &&
         family &&
         (stored.reading === "notes" || stored.reading === "degrees")
