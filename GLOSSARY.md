@@ -16,6 +16,18 @@ Nota escolhida como origem para identificar e comparar intervalos.
 **Escala**:
 Conjunto de notas organizado por uma estrutura de intervalos, tomado relativamente a uma tónica.
 
+**Modo musical**:
+Organização de notas em torno de uma tónica, com uma estrutura de intervalos própria. Modos que partilham as mesmas notas distinguem-se pelo seu centro musical.
+
+**Modos gregos**:
+Conjunto dos sete modos diatónicos modernos: Jónio, Dórico, Frígio, Lídio, Mixolídio, Eólio e Lócrio. Cada um pode ser tomado a partir de qualquer tónica.
+
+**Modos paralelos**:
+Modos que têm a mesma tónica e diferentes estruturas de intervalos.
+
+**Modos relativos**:
+Modos que partilham o mesmo conjunto de notas e têm tónicas diferentes.
+
 **Tónica**:
 Nota que funciona como centro e dá nome à escala. É a referência para identificar os seus graus.
 

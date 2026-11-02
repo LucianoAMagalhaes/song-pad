@@ -33,6 +33,17 @@ export interface IntervalPosition extends NotePosition {
 
 export type ScaleFamily = "major" | "natural-minor" | "major-pentatonic" | "minor-pentatonic";
 
+export type GreekMode =
+  | "ionian"
+  | "dorian"
+  | "phrygian"
+  | "lydian"
+  | "mixolydian"
+  | "aeolian"
+  | "locrian";
+
+export type ModeComparisonKind = "parallel" | "relative";
+
 export interface ScaleNote {
   name: string;
   spelling: NoteSpelling;
@@ -189,6 +200,15 @@ export const NOTE_CHOICES = USUAL_SPELLINGS.flat().map((spelling) => ({
   spelling: { ...spelling },
 }));
 
+/** Accepts contextual spellings too, including tonics reached through relative modes. */
+export function parseNoteSpelling(name: string): NoteSpelling | null {
+  const match = /^([A-G])(#+|b+)?$/.exec(name);
+  const letter = LETTERS.find((candidate) => candidate === match?.[1]);
+  if (!match || match[0] !== name || !letter) return null;
+  const signs = match[2] ?? "";
+  return { letter, accidental: signs.length * (signs.startsWith("b") ? -1 : 1) };
+}
+
 function register(semitones: number, spelling: NoteSpelling): number {
   return (semitones - NATURAL_CLASSES[spelling.letter] - spelling.accidental) / 12 - 1;
 }
@@ -320,9 +340,12 @@ export const SCALE_CHOICES = [
 
 /** Builds scale functions across all registers, reusing contextual interval spelling. */
 export function getScaleMap(tonic: NoteSpelling, family: ScaleFamily) {
-  const map = getNoteMap(tonic);
   const scale = SCALE_CHOICES.find(({ id }) => id === family)!;
-  const notes: ScaleNote[] = scale.formula.map((interval) => {
+  return { ...getFormulaMap(tonic, scale.formula), family, name: scale.name };
+}
+
+function getScaleNotes(tonic: NoteSpelling, formula: readonly SimpleInterval[]): ScaleNote[] {
+  return formula.map((interval) => {
     const target = spellInterval(tonic, interval);
     const alteration = interval.semitones - MAJOR_SEMITONES[interval.degree - 1];
     const prefix = alteration < 0 ? "b".repeat(-alteration) : "#".repeat(alteration);
@@ -332,6 +355,11 @@ export function getScaleMap(tonic: NoteSpelling, family: ScaleFamily) {
       interval: { ...interval, name: intervalName(interval.degree, interval.semitones) },
     };
   });
+}
+
+function getFormulaMap(tonic: NoteSpelling, formula: readonly SimpleInterval[]) {
+  const map = getNoteMap(tonic);
+  const notes = getScaleNotes(tonic, formula);
   const positions: ScalePosition[] = map.positions.map((position) => {
     const scaleNote = notes.find((note) => note.pitchClass === position.pitch.pitchClass) ?? null;
     return {
@@ -340,5 +368,67 @@ export function getScaleMap(tonic: NoteSpelling, family: ScaleFamily) {
       pitch: scaleNote ? buildPitch(position.pitch.semitones, scaleNote.spelling) : position.pitch,
     };
   });
-  return { ...map, family, name: scale.name, notes, positions };
+  return { ...map, notes, positions };
+}
+
+function modalFormula(semitones: readonly number[]): SimpleInterval[] {
+  return ([1, 2, 3, 4, 5, 6, 7] as const).map((degree, index) => ({
+    degree,
+    semitones: semitones[index],
+  }));
+}
+
+/** Modern diatonic modes in relative order; Ionian and Aeolian share existing formulas. */
+export const GREEK_MODE_CHOICES = [
+  { id: "ionian", name: "Jónio (maior)", formula: SCALE_CHOICES[0].formula },
+  { id: "dorian", name: "Dórico", formula: modalFormula([0, 2, 3, 5, 7, 9, 10]) },
+  { id: "phrygian", name: "Frígio", formula: modalFormula([0, 1, 3, 5, 7, 8, 10]) },
+  { id: "lydian", name: "Lídio", formula: modalFormula([0, 2, 4, 6, 7, 9, 11]) },
+  { id: "mixolydian", name: "Mixolídio", formula: modalFormula([0, 2, 4, 5, 7, 9, 10]) },
+  { id: "aeolian", name: "Eólio (menor natural)", formula: SCALE_CHOICES[1].formula },
+  { id: "locrian", name: "Lócrio", formula: modalFormula([0, 1, 3, 5, 6, 8, 10]) },
+] as const satisfies readonly {
+  id: GreekMode;
+  name: string;
+  formula: readonly SimpleInterval[];
+}[];
+
+/** Builds one modal scale on the same continuous map as the other scale families. */
+export function getModeMap(tonic: NoteSpelling, mode: GreekMode) {
+  const choice = GREEK_MODE_CHOICES.find(({ id }) => id === mode)!;
+  return { ...getFormulaMap(tonic, choice.formula), mode, name: choice.name };
+}
+
+/** Compares written degrees for parallel modes, or rotates one spelled collection for relatives. */
+export function getModeComparison(
+  tonic: NoteSpelling,
+  mode: GreekMode,
+  kind: ModeComparisonKind,
+  referenceMode: GreekMode = "ionian",
+) {
+  const selectedIndex = GREEK_MODE_CHOICES.findIndex(({ id }) => id === mode);
+  const selectedNotes = getScaleNotes(tonic, GREEK_MODE_CHOICES[selectedIndex].formula);
+  const parentTonic = selectedNotes[(7 - selectedIndex) % 7];
+  const parentNotes = getScaleNotes(parentTonic.spelling, GREEK_MODE_CHOICES[0].formula);
+  const reference = GREEK_MODE_CHOICES.find(({ id }) => id === referenceMode)!;
+  const referenceNotes = getScaleNotes(tonic, reference.formula);
+  const rows = GREEK_MODE_CHOICES.map((choice, index) => {
+    const rowTonic = kind === "parallel" ? tonic : parentNotes[index].spelling;
+    const notes = getScaleNotes(rowTonic, choice.formula);
+    return {
+      mode: choice.id,
+      name: choice.name,
+      tonic: { name: notes[0].name, spelling: notes[0].spelling },
+      notes,
+      differences:
+        kind === "parallel"
+          ? notes.flatMap((note, degreeIndex) =>
+              note.interval.semitones === referenceNotes[degreeIndex].interval.semitones
+                ? []
+                : [{ note, referenceNote: referenceNotes[degreeIndex] }],
+            )
+          : [],
+    };
+  });
+  return { rows, parentTonic: { name: parentTonic.name, spelling: parentTonic.spelling } };
 }

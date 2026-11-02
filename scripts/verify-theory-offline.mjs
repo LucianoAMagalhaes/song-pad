@@ -116,7 +116,7 @@ async function assertLayout(page) {
   await expectText(page.locator("main"), "◎ Posição seleccionada");
 }
 
-async function exploreOffline(page, touch) {
+async function exploreOffline(page, touch, deviceName) {
   const activate = (locator) => (touch ? locator.tap() : locator.click());
   const details = page.getByRole("region", { name: "Posição seleccionada", exact: true });
   await activate(page.getByRole("button", { name: "Notas", exact: true }));
@@ -168,6 +168,94 @@ async function exploreOffline(page, touch) {
   assert.equal(await page.locator(":focus").getAttribute("data-fret"), "24");
   assert.equal(await page.locator(":focus").getAttribute("data-string"), "2");
   await assertLayout(page);
+
+  await activate(page.getByRole("button", { name: "Modos Gregos", exact: true }));
+  assert.equal(await page.getByLabel("Tónica", { exact: true }).inputValue(), "C");
+  const modalChoices = [
+    "ionian",
+    "dorian",
+    "phrygian",
+    "lydian",
+    "mixolydian",
+    "aeolian",
+    "locrian",
+  ];
+  for (const mode of modalChoices) {
+    await page.getByLabel("Modo musical", { exact: true }).selectOption(mode);
+    assert.equal(await page.getByRole("grid").count(), 1);
+    assert.equal(
+      await page
+        .getByRole("table", { name: "Modos com a mesma tónica", exact: true })
+        .getByRole("row")
+        .count(),
+      8,
+    );
+  }
+  await page.getByLabel("Tónica", { exact: true }).selectOption("D");
+  await page.getByLabel("Modo musical", { exact: true }).selectOption("dorian");
+  await page.getByLabel("Modo de referência", { exact: true }).selectOption("aeolian");
+  await expectText(
+    page.getByRole("region", { name: "Comparar modos", exact: true }),
+    "Diferenças: B/6 em vez de Bb/b6.",
+  );
+  await expectText(page.locator("main"), "D · E · F · G · A · B · C");
+  await assertLayout(page);
+  await page.screenshot({
+    path: resolve(artifactDir, `${deviceName}-modes-parallel.png`),
+    fullPage: true,
+  });
+
+  await activate(page.getByRole("button", { name: "Mesmas notas", exact: true }));
+  assert.equal(await page.getByLabel("Tónica", { exact: true }).inputValue(), "D");
+  await activate(page.getByRole("button", { name: "Explorar E · Frígio", exact: true }));
+  assert.equal(await page.getByLabel("Tónica", { exact: true }).inputValue(), "E");
+  await expectText(page.locator("main"), "E · F · G · A · B · C · D");
+  await page
+    .getByRole("button", { name: /^E4, 1\.ª corda, casa 0, corda solta, tónica, grau 1$/ })
+    .waitFor();
+  await activate(page.getByRole("button", { name: "Mesma tónica", exact: true }));
+  assert.equal(await page.getByLabel("Tónica", { exact: true }).inputValue(), "E");
+  assert.equal(await page.getByLabel("Modo musical", { exact: true }).inputValue(), "phrygian");
+  assert.equal(
+    await page.getByLabel("Modo de referência", { exact: true }).inputValue(),
+    "aeolian",
+  );
+
+  // A relative tonic may be outside the initial selector; preserve its spelling and persistence.
+  await page.getByLabel("Tónica", { exact: true }).selectOption("C#");
+  await page.getByLabel("Modo musical", { exact: true }).selectOption("ionian");
+  await activate(page.getByRole("button", { name: "Mesmas notas", exact: true }));
+  await activate(page.getByRole("button", { name: "Explorar E# · Frígio", exact: true }));
+  await page.getByLabel("Leitura", { exact: true }).selectOption("degrees");
+  await activate(page.getByRole("button", { name: /^E#4, 1\.ª corda, casa 1, tónica, grau 1$/ }));
+  await expectText(details, "E#4");
+  await page.keyboard.press("End");
+  assert.equal(await page.locator(":focus").getAttribute("data-fret"), "24");
+  await page.reload();
+  await page.getByRole("button", { name: "Modos Gregos", exact: true, pressed: true }).waitFor();
+  assert.equal(await page.getByLabel("Tónica", { exact: true }).inputValue(), "E#");
+  assert.equal(await page.getByLabel("Modo musical", { exact: true }).inputValue(), "phrygian");
+  assert.equal(await page.getByLabel("Leitura", { exact: true }).inputValue(), "degrees");
+  await page.getByRole("button", { name: "Mesmas notas", exact: true, pressed: true }).waitFor();
+  await expectText(details, "2.ª corda · casa 1");
+  await assertLayout(page);
+  await page.screenshot({
+    path: resolve(artifactDir, `${deviceName}-modes-relative.png`),
+    fullPage: true,
+  });
+
+  const modalTab = await page.context().newPage();
+  const modalResponse = await modalTab.goto(new URL("/theory", page.url()).href);
+  assert.ok(modalResponse.fromServiceWorker());
+  await modalTab
+    .getByRole("button", { name: "Modos Gregos", exact: true, pressed: true })
+    .waitFor();
+  assert.equal(await modalTab.getByLabel("Tónica", { exact: true }).inputValue(), "E#");
+  await modalTab.close();
+  await activate(page.getByRole("button", { name: "Escalas", exact: true }));
+  assert.equal(await page.getByLabel("Tónica", { exact: true }).inputValue(), "C#");
+  assert.equal(await page.getByLabel("Família", { exact: true }).inputValue(), "major");
+  assert.equal(await page.getByLabel("Leitura", { exact: true }).inputValue(), "notes");
 }
 
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -187,6 +275,7 @@ try {
     { name: "desktop", viewport: { width: 1440, height: 1000 }, touch: false },
     { name: "tablet", viewport: { width: 820, height: 1180 }, touch: true },
     { name: "mobile", viewport: { width: 390, height: 844 }, touch: true },
+    { name: "narrow", viewport: { width: 320, height: 800 }, touch: true },
   ]) {
     const context = await browser.newContext({ viewport: device.viewport, hasTouch: device.touch });
     // A synthetic persisted Firebase session avoids Google credentials and production data.
@@ -218,7 +307,7 @@ try {
     assert.ok(response.fromServiceWorker(), "Reload must be served by the service worker");
     await page.getByRole("grid").waitFor();
     assert.equal(await page.evaluate(() => navigator.onLine), false);
-    await exploreOffline(page, device.touch);
+    await exploreOffline(page, device.touch, device.name);
     assert.equal(cloudRequests.length, 0, "Offline exploration must not use Firestore");
     await page.screenshot({ path: resolve(artifactDir, `${device.name}.png`), fullPage: true });
 
@@ -251,7 +340,7 @@ try {
     }
     assert.deepEqual(errors, []);
     console.log(
-      `${device.name}: offline reload, three modes, preferences, new tab, library links, layout, touch/keyboard passed`,
+      `${device.name}: offline reload, four areas, seven Greek modes, parallel/relative comparisons, preferences, new tab, library links, layout, touch/keyboard passed`,
     );
     await context.close();
   }
