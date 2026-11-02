@@ -11,7 +11,7 @@ Implementação da [especificação aprovada](../planning/greek-modes.md), na br
 - Alternar as vistas conserva a escala em estudo; escolher uma linha actualiza o único braço. A posição seleccionada mantém corda/casa durante a sessão, incluindo as trocas entre as quatro áreas.
 - As preferências de Modos Gregos são locais e independentes de Escalas: tónica, modo musical, leitura, vista e referência. São guardadas por conta em `songpad:greek-modes:<uid codificado>`, com versão 1. O adaptador de Teoria continua a ler os registos anteriores e admite a nova área como última área aberta.
 - Tónicas contextuais alcançadas pelos relativos, como E# em C# maior, permanecem seleccionáveis e restauráveis. Dados inválidos ou armazenamento indisponível recuperam defaults ou permitem continuar em memória. A montagem inicial é idêntica no servidor e no cliente; o restauro ocorre após montagem.
-- Sem áudio, exercícios, harmonização, dedilhados/CAGED ou integração com músicas. Sem novas dependências, alterações ao Firestore ou ao backup. Não houve deploy.
+- Sem áudio, exercícios, harmonização, dedilhados/CAGED ou integração com músicas. Sem novas dependências, alterações ao Firestore ou ao backup. Publicação registada abaixo.
 
 ## Verificação automatizada
 
@@ -51,3 +51,19 @@ As capturas abaixo foram inspeccionadas. Reproduzir com `npm run build` seguido 
 - [320 px — modos paralelos](theory-greek-modes/narrow.png)
 
 Primeiro login e obtenção dos recursos continuam a exigir rede, conforme a fronteira offline existente.
+
+## Publicação — 2026-11-02
+
+Publicação autorizada pelo utilizador após o merge do PR #45. Build de produção gerado a partir de `main` (`791ea6d`), com a árvore de trabalho limpa, e publicado com `firebase deploy --only hosting --project song-pad-app`. O Firebase confirmou a conclusão; apenas o Hosting foi publicado.
+
+URL: https://song-pad-app.web.app/theory.
+
+Verificação no domínio público:
+
+- `/login`, `/theory`, `/songs`, `/setlists` e os quatro rewrites dinâmicos de músicas/setlists devolveram HTTP 200.
+- O SHA-256 do `/sw.js` publicado coincide com o artefacto gerado neste build.
+- O acesso anónimo a `/theory` redireccionou para login.
+- Em Chromium a 390×844, com a mesma fronteira sintética Firebase Auth usada na validação anterior: Ré dórico comparado com Ré eólio mostrou B/6 contra Bb/b6; a vista Mesmas notas permitiu seleccionar Mi frígio conservando o conjunto de notas.
+- Após obter os recursos e desligar a rede, o documento foi servido pelo service worker e restaurou Mi frígio na vista Mesmas notas. Sem overflow da página, erros JavaScript ou pedidos Firestore durante a exploração.
+
+Foi usado `/tmp/songpad-greek-deploy-check.cjs`; captura de produção em `/tmp/songpad-greek-deployed-mobile.png`. Esta verificação não efectuou um novo login Google real.
