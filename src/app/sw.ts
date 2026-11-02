@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
-import { defaultCache } from "@serwist/next/worker";
+import { defaultCache, PAGES_CACHE_NAME } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import { NetworkFirst, Serwist } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -16,7 +16,16 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching: [
+    {
+      // cacheOnNavigation stores the exported HTML in "pages". Navigation
+      // requests have no Content-Type header, so match their mode explicitly.
+      matcher: ({ request, url, sameOrigin }) =>
+        sameOrigin && request.mode === "navigate" && url.pathname === "/theory",
+      handler: new NetworkFirst({ cacheName: PAGES_CACHE_NAME.html }),
+    },
+    ...defaultCache,
+  ],
 });
 
 serwist.addEventListeners();
