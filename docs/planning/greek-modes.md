@@ -85,6 +85,6 @@ O [material de Paul Schmeling/Berklee](https://online.berklee.edu/takenote/music
 
 ## Implementação e validação
 
-A implementação decorre na branch `feat/theory-greek-modes`, criada a partir de `main` (`bdf317f`). O núcleo musical partilha a grafia e a construção do mapa com Escalas; as preferências modais são independentes das famílias existentes. A publicação no Hosting exige uma decisão própria.
+A implementação foi integrada pelo [PR #45](https://github.com/LucianoAMagalhaes/song-pad/pull/45), a partir da branch `feat/theory-greek-modes`, criada de `main` (`bdf317f`). O núcleo musical partilha a grafia e a construção do mapa com Escalas; as preferências modais são independentes das famílias existentes. A publicação no Hosting foi autorizada e realizada em 2026-11-02.
 
 Resultados e instruções de reprodução ficam em [validação de Modos Gregos](../verification/theory-greek-modes.md).
